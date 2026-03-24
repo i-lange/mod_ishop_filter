@@ -31,9 +31,10 @@ $warehouses_access = $params->get('warehouses_access', 0);
     <li class="parent">
         <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_WAREHOUSES'); ?></span>
         <input type="hidden" name="warehouses[]" value="0">
-        <ul class="inputs">
+        <ul class="list-unstyled">
             <?php foreach($filter->warehouses as $warehouse) : ?>
-                <li><p class="form-check">
+                <li>
+                    <div class="form-check">
                         <?php
                         $checked = '';
                         if (in_array($warehouse->id, $filter->active['warehouses'])) {
@@ -41,13 +42,14 @@ $warehouses_access = $params->get('warehouses_access', 0);
                         }
                         ?>
                         <input class="form-check-input"
-                               id="warehouse-<?php echo $warehouse->id; ?>"
-                               type="checkbox"
-                               name="warehouses[]"
-                               value="<?php echo $warehouse->id; ?>" <?php echo $checked; ?>>
+                                id="warehouse-<?php echo $warehouse->id; ?>"
+                                type="checkbox"
+                                name="warehouses[]"
+                                value="<?php echo $warehouse->id; ?>" <?php echo $checked; ?>>
                         <label class="form-check-label"
-                               for="warehouse-<?php echo $warehouse->id; ?>"><?php echo $warehouse->title; ?></label>
-                    </p></li>
+                                for="warehouse-<?php echo $warehouse->id; ?>"><?php echo $warehouse->title; ?></label>
+                    </div>
+                </li>
             <?php endforeach; ?>
         </ul>
     </li>

@@ -29,14 +29,14 @@ if (isset($filter->active['good_price']) && (int) $filter->active['good_price'] 
 }
 ?>
 <li>
-    <input type="hidden" name="good_price" value="0">
-    <div class="form-switcher <?php echo $checked; ?>">
-        <label class="form-switcher__label" for="ishop_good_price_bool"><?php echo Text::_('MOD_ISHOP_FILTER_BY_SALES'); ?></label>
-        <div class="form-switcher__slider">
-            <input id="ishop_good_price_bool"
-                   type="checkbox"
-                   name="good_price"
-                   value="1" <?php echo $checked; ?>>
-        </div>
-    </div>
-</li>
+     <input type="hidden" name="good_price" value="0">
+     <div class="form-check form-switch">
+         <input class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="ishop_good_price_bool"
+                name="good_price"
+                value="1" <?php echo $checked; ?>>
+         <label class="form-check-label" for="ishop_good_price_bool"><?php echo Text::_('MOD_ISHOP_FILTER_BY_SALES'); ?></label>
+     </div>
+ </li>

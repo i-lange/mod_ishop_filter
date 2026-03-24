@@ -28,25 +28,27 @@ defined('_JEXEC') or die;
 
 ?>
 <li class="parent">
-    <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_BRAND'); ?></span>
-    <input type="hidden" name="manufacturers[]" value="0">
-    <ul class="inputs">
-		<?php foreach($filter->manufacturers as $brand) : ?>
-            <li><p class="form-check">
-					<?php
-					$checked = '';
-					if (in_array($brand['id'], $filter->active['manufacturers'])) {
-						$checked = 'checked';
-					}
-					?>
-                    <input class="form-check-input"
-                           id="brand-<?php echo $brand['id']; ?>"
-                           type="checkbox"
-                           name="manufacturers[]"
-                           value="<?php echo $brand['id']; ?>" <?php echo $checked; ?>>
-                    <label class="form-check-label"
-                           for="brand-<?php echo $brand['id']; ?>"><?php echo $brand['title']; ?></label>
-                </p></li>
-		<?php endforeach; ?>
-    </ul>
-</li>
+     <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_BRAND'); ?></span>
+     <input type="hidden" name="manufacturers[]" value="0">
+     <ul class="list-unstyled">
+  		<?php foreach($filter->manufacturers as $brand) : ?>
+        		<li>
+        			<div class="form-check">
+ 						<?php
+ 						$checked = '';
+ 						if (in_array($brand['id'], $filter->active['manufacturers'])) {
+ 							$checked = 'checked';
+ 						}
+ 						?>
+                         <input class="form-check-input"
+                                id="brand-<?php echo $brand['id']; ?>"
+                                type="checkbox"
+                                name="manufacturers[]"
+                                value="<?php echo $brand['id']; ?>" <?php echo $checked; ?>>
+                         <label class="form-check-label"
+                                for="brand-<?php echo $brand['id']; ?>"><?php echo $brand['title']; ?></label>
+        			</div>
+        		</li>
+  		<?php endforeach; ?>
+     </ul>
+ </li>
