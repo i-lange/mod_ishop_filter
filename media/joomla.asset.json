@@ -1,0 +1,23 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "mod_ishop_filter",
+  "version": "1.0.0",
+  "description": "mod_ishop_filter Assets",
+  "license": "GNU General Public License version 2 or later",
+  "assets": [
+    {
+      "name": "ishop_filter.front",
+      "type": "style",
+      "uri": "mod_ishop_filter/front.css"
+    },
+    {
+      "name": "ishop_filter.front",
+      "type": "script",
+      "uri": "mod_ishop_filter/front.js",
+      "dependencies": ["core"],
+      "attributes": {
+        "defer": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" client="site" method="upgrade">
+    <name>mod_ishop_filter</name>
+    <author>Pavel Lange</author>
+    <creationDate>2025-05-25</creationDate>
+    <copyright>(C) 2025 Pavel Lange &lt;https://ilange.ru&gt;</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <authorEmail>pavel@ilange.ru</authorEmail>
+    <authorUrl>https://ilange.ru/en/contact</authorUrl>
+    <version>1.0.0</version>
+    <description>MOD_ISHOP_FILTER_XML_DESCRIPTION</description>
+    <scriptfile>script.php</scriptfile>
+    <namespace path="src">Ilange\Module\Ishopfilter</namespace>
+
+    <files>
+        <folder module="mod_ishop_filter">services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+    </files>
+
+    <languages>
+        <language tag="en-GB">language/en-GB/mod_ishop_filter.ini</language>
+        <language tag="en-GB">language/en-GB/mod_ishop_filter.sys.ini</language>
+        <language tag="ru-RU">language/ru-RU/mod_ishop_filter.ini</language>
+        <language tag="ru-RU">language/ru-RU/mod_ishop_filter.sys.ini</language>
+    </languages>
+
+    <media destination="mod_ishop_filter" folder="media">
+        <filename>joomla.asset.json</filename>
+        <folder>css</folder>
+        <folder>js</folder>
+    </media>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field type="spacer"
+                       name="ishop_filter_spacer_1"
+                       label="MOD_ISHOP_FILTER_XML_DISPLAY_TITLE" />
+                <field name="show_prices"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="1"
+                       label="MOD_ISHOP_FILTER_XML_USE_PRICE">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_sales"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="1"
+                       label="MOD_ISHOP_FILTER_XML_USE_SALE">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_brand"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="1"
+                       label="MOD_ISHOP_FILTER_XML_USE_BRAND">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="brand_ordering"
+                       type="list"
+                       default="ordering"
+                       label="MOD_ISHOP_FILTER_XML_BRAND_ORDERING">
+                    <option value="ordering">MOD_ISHOP_FILTER_XML_BY_ORDERING</option>
+                    <option value="title">MOD_ISHOP_FILTER_XML_BY_TITLE</option>
+                    <option value="count">MOD_ISHOP_FILTER_XML_BY_COUNT</option>
+                </field>
+                <field name="show_fields"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_FIELDS">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_width"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_WIDTH">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_height"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_HEIGHT">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_depth"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_DEPTH">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="show_weight"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_WEIGHT">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field type="spacer"
+                       name="ishop_filter_spacer_2"
+                       label="MOD_ISHOP_FILTER_XML_DISPLAY_WAREHOUSES" />
+                <field name="show_warehouses"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="0"
+                       label="MOD_ISHOP_FILTER_XML_USE_WAREHOUSES">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="warehouses_access"
+                       type="accesslevel"
+                       label="JFIELD_ACCESS_LABEL"
+                       filter="UINT"
+                       validate="options"
+                       showon="show_warehouses:1"/>
+            </fieldset>
+            <fieldset name="advanced">
+                <field name="use_css"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="1"
+                       label="MOD_ISHOP_FILTER_XML_USE_CSS"
+                       description="MOD_ISHOP_FILTER_XML_USE_CSS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="use_js"
+                       type="radio"
+                       buttons="true"
+                       layout="joomla.form.field.radio.switcher"
+                       default="1"
+                       label="MOD_ISHOP_FILTER_XML_USE_JS"
+                       description="MOD_ISHOP_FILTER_XML_USE_JS_DESC">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field name="layout"
+                       type="modulelayout"
+                       label="JFIELD_ALT_LAYOUT_LABEL"
+                       class="form-select"
+                       validate="moduleLayout"/>
+            </fieldset>
+        </fields>
+    </config>
+
+    <changelogurl>https://update.ilange.ru/mod_ishop_filter/changelog.xml</changelogurl>
+    <updateservers>
+        <server type="extension" priority="1" name="mod_ishop_filter">https://update.ilange.ru/mod_ishop_filter/updates.xml</server>
+    </updateservers>
+</extension>
