@@ -8,7 +8,7 @@ Main stack: PHP 8.3+, Joomla 6, with optional JavaScript frontend.
 ## Architecture / Project structure
 
 - `services/` — Service providers and dependency injection binding.
-- `src/Dispatcher/` — Module dispatcher and entry point.
+- `src/Dispatcher/` — Module dispatcher.
 - `src/Helper/` — Helper classes containing business logic.
 - `tmpl/` — View templates for the module layout.
 - `media/` — Static assets (JavaScript, CSS, images).
@@ -41,8 +41,7 @@ Main stack: PHP 8.3+, Joomla 6, with optional JavaScript frontend.
 ### PHP (Joomla! Module)
 
 This project is an extension for Joomla 6: product filtering module.
-Before generating/refactoring the code, be sure to read the local files in "C:\OSPanel\home\mod_ishop_filter\docs",
-and, if necessary, look for details in https://manual.joomla.org/docs/ for version 6 using webfetch/websearch
+Before generating/refactoring the code, be sure to read docs https://manual.joomla.org/docs/ for version 6 using webfetch/websearch
 All PHP code follows **Joomla! coding standards** and **PSR-12** guidelines:
 
 #### Formatting
@@ -117,7 +116,7 @@ import{Component}from'@joomla/component';exportclassPrepareFilter{staticconstMAX
 Always:
 
 - Respect existing Joomla 6 architecture and module structure.
-- Read docs from `docs/` before making significant changes to business logic.
+- Read docs before making significant changes to business logic.
 - Maintain compatibility with Joomla 6 and the existing module API.
 - Write meaningful commit messages and comments when appropriate.
 
@@ -136,11 +135,12 @@ Never:
 ## Documentation & References
 
 Before generating or refactoring code, the agent must:
-
-- Read files in the `docs/` directory (local Joomla documentation).
 - If necessary, consult the official manual at https://manual.joomla.org/ for Joomla 6.
 
-## Frontend Access
+## Frontend Testing
 
-The frontend is accessible at http://magazin-gefest-new.local. The server is always running and does not require configuration.
-This Joomla instance has the current version of the mod_ishop_filter module installed.
+The frontend is accessible at https://magazin-gefest-new.local
+
+- The development server is always running and requires no additional setup
+- Use this URL for manual testing of interface changes
+- Responsive design should be tested across device size
