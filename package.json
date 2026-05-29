@@ -1,6 +1,6 @@
 {
   "name": "mod_ishop_filter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Pavel Lange",
     "email": "pavel@ilange.ru",
@@ -9,14 +9,14 @@
   "private": true,
   "type": "module",
   "license": "GPL-2.0-or-later",
-  "description": "Product Filter Module for com_ishop with CMS Joomla! v6",
+  "description": "Product Filter Module for E-commerce Extension com_ishop for CMS Joomla! v6",
   "keywords": [
     "joomla",
     "joomla 6",
     "joomla-module",
     "ecommerce",
     "ishop",
-    "ishop-filter"
+    "mod_ishop_filter"
   ],
   "repository": {
     "type": "git",
@@ -34,37 +34,24 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "archiver": "^7.0.1",
-    "eslint": "^10.0.3",
-    "prettier": "^3.8.1",
+    "lightningcss": "^1.32.0",
     "sass": "^1.98.0",
-    "stylelint": "^17.4.0",
-    "vite": "^8.0.0",
+    "vite": "8.0.5",
     "vite-plugin-compression": "^0.5.1"
   },
   "scripts": {
-    "dev": "vite",
-    "dev:css": "vite --config vite.config.css.mts",
-    "dev:js": "vite --config vite.config.js.mts",
     "build": "node build.mjs",
     "build:css": "vite build --config vite.config.css.mts",
     "build:js": "vite build --config vite.config.js.mts",
-    "preview": "vite preview",
-    "lint": "eslint \"media/js/**/*.js\"",
-    "lint:css": "stylelint \"media/scss/**/*.scss\"",
-    "format": "prettier --write \"{media,backend,frontend}/**/*.{js,scss,css,php,xml,ini}\"",
+    "watch:css": "vite build --watch --config vite.config.css.mts",
+    "watch:js": "vite build --watch --config vite.config.js.mts",
     "test": "echo \"No automated tests yet\" && exit 0",
     "zip": "pnpm build && node pack.mjs"
   },
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=24.0.0",
     "npm": ">=11.8.0",
     "pnpm": ">=10.3.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "core-js"
-    ]
   }
 }
