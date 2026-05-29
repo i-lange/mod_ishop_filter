@@ -1,9 +1,48 @@
 # AGENTS.md
 
-## Project Overview
+## Назначение проекта
 
-This is a Joomla! 6 module for product filtering (mod_ishop_filter).
-Main stack: PHP 8.3+, Joomla 6, with optional JavaScript frontend.
+`mod_ishop_filter` - устанавливаемое расширение, модуль для CMS Joomla 6. Модуль отображает для пользователя форму фильтра для подбора товаров по параметрам. Модуль работает только в связке с компонентом com_ishop.
+
+
+
+## Связанные проекты и расширения
+Данный модуль разрабатывается для интернет-магазина на Joomla.
+Собранный production-ready проект это magazin-gefest-new.local, он доступен:
+- в окружении Windows путь к директории проекта: "c:\OSPanel\home\magazin-gefest-new.local\"
+- в окружении WSL путь к директории проекта: "mnt/c/OSPanel/home/magazin-gefest-new.local"
+- на локальном сервере (сервер всегда запущен по-умолчанию) панель администратора доступна по адресу: https://magazin-gefest-new.local/administrator/
+- на локальном сервере (сервер всегда запущен по-умолчанию) фронтенд сайта доступен по адресу: https://magazin-gefest-new.local
+
+Расширения, которые работают вместе в рамках magazin-gefest-new.local:
+- com_ishop (в окружении Windows путь "c:\OSPanel\home\com_ishop\") это компонент Joomla непосредственно интернет-магазина.
+- com_ishopintegro (в окружении Windows путь "c:\OSPanel\home\com_ishopintegro\") это компонент Joomla для интернет-магазина com_ishop со сторонними сервисами, для обмена данными.
+- mod_ishop_cart (в окружении Windows путь "c:\OSPanel\home\mod_ishop_cart\") это модуль Joomla для реализации функций корзины пользователя.
+- mod_ishop_compare (в окружении Windows путь "c:\OSPanel\home\mod_ishop_compare\") это модуль Joomla для реализации функций сравнения товаров.
+- mod_ishop_filter (в окружении Windows путь "c:\OSPanel\home\mod_ishop_filter\") это модуль Joomla для реализации фильтрации товаров в категории по параметрам.
+- mod_ishop_zone (в окружении Windows путь "c:\OSPanel\home\mod_ishop_zone\") это модуль Joomla для реализации выбора подходящей зоны доставки (местоположения) пользователем.
+- plg_ishopfinder (в окружении Windows путь "c:\OSPanel\home\plg_ishopfinder\") это плагин Joomla для индексации товаров в штатном поиск CMS Joomla.
+- plg_ishopintegrocron (в окружении Windows путь "c:\OSPanel\home\plg_ishopintegrocron\") это плагин Joomla для запуска некоторых методов com_ishopintegro из планировщика задач CMS Joomla.
+- tpl_itheme (в окружении Windows путь "c:\OSPanel\home\tpl_itheme\") это шаблон Joomla который используется на всей клиентской части сайта
+- plg_ithemecsscompiler (в окружении Windows путь "c:\OSPanel\home\plg_ithemecsscompiler\") это плагин Joomla который добавляет в шаблон tpl_itheme возможность компилировать стили прямо из административной панели Joomla
+
+При внесении изменений в проект нужно держать во внимании данный контекст. Все эти расширения дополняют друг друга и имеют некоторые зависимости одно от другого!
+
+## Официальный контекст Joomla 6
+
+При изменениях сверяйтесь с официальной документацией Joomla, особенно:
+
+- Getting Started: https://manual.joomla.org/docs/get-started/
+- Technical Requirements: https://manual.joomla.org/docs/get-started/technical-requirements/
+- Module Development Tutorial: https://manual.joomla.org/docs/building-extensions/modules/module-development-tutorial/
+- Web Asset Manager: https://manual.joomla.org/docs/general-concepts/web-asset-manager/
+
+
+## Стек и окружение
+
+- Joomla CMS 6.x, `method="upgrade"`.
+- PHP 8.3+; для Joomla 6.x ориентируйтесь на актуальные требования официальной документации.
+- Для вывода html по-умолчанию используются подходы Bootstrap 5.3.
 
 ## Architecture / Project structure
 
@@ -15,132 +54,44 @@ Main stack: PHP 8.3+, Joomla 6, with optional JavaScript frontend.
 - `language/en-GB/`, `language/ru-RU/` — Language files for English and Russian.
 - `mod_ishop_filter.xml` — Extension manifest and configuration.
 
-## Build/Lint/Test Commands
+## Команды
 
-### General Commands
+- `pnpm install` - установить JS-зависимости по `pnpm-lock.yaml`.
+- `pnpm build` - полная сборка CSS и JS через `build.mjs`.
+- `pnpm build:css` - собрать `media/css/*.css`, `*.min.css`, `*.min.css.gz`.
+- `pnpm build:js` - собрать `media/js/*.min.js`, `*.min.js.gz`.
+- `pnpm watch:js` - наблюдать `media/js/*.min.js`, `*.min.js.gz`.
+- `pnpm watch:css` - наблюдать `media/js/*.min.js`, `*.min.js.gz`.
+- `pnpm test` - сейчас заглушка `No automated tests yet`.
+- `pnpm zip` - `pnpm build` и создание установочного архива `tpl_itheme-{version}.zip`.
 
-- `pnpm build` - Build the project (if applicable)
-- `pnpm lint` - Run linting checks
-- `pnpm test` - Run all tests
-- `php vendor/bin/phpunit --filter testName path/to/test/file.php` - Run single PHP test
-- `pnpm test -- --testNamePattern="test name"` - Run single JS/TS test
+## Правила внесения изменений
 
-### Testing
+- Сначала меняйте исходники: SCSS в `media/scss`, обычные JS entrypoints в `media/js`, PHP overrides в `html` или корневых template-файлах. Не правьте вручную `.min.css`, `.min.js`, `.gz`, если изменение должно генерироваться сборкой.
+- После изменения SCSS/JS запускайте соответствующую сборку и включайте сгенерированные assets, если проект ожидает готовый installable template.
+- `vite.config.css.mts` использует `emptyOutDir: true` для `media/css`; не держите там ручные файлы, которые не должны удаляться сборкой.
+- В PHP-файлах сохраняйте `defined('_JEXEC') or die;`, namespaced Joomla API (`Factory`, `HTMLHelper`, `Text`, `LayoutHelper`, `Route`) и существующий стиль шаблона.
+- Экранируйте вывод: `$this->escape()`, `htmlspecialchars()`, `HTMLHelper::cleanImageURL()`, `Text::_()` и явные приведения типов там, где данные приходят из params/input/model.
+- Формы должны содержать Joomla CSRF token через `HTMLHelper::_('form.token')`; новые POST/AJAX сценарии должны учитывать Joomla token и права доступа.
+- Новые assets регистрируйте в `joomla.asset.json` с понятными именами, `type`, `uri`, `attributes` и `dependencies`.
+- Если добавляете новый JS entrypoint, обновите `JS_ENTRY_FILES` в `vite.config.js.mts` и asset declaration в `joomla.asset.json`.
+- Если добавляете новый SCSS entrypoint, обновите `SCSS_ENTRIES` в `vite.config.css.mts` и asset declaration в `joomla.asset.json`.
+- Для Bootstrap-разметки используйте классы и data-атрибуты Bootstrap 5.3 (`data-bs-*`), а не устаревшие Bootstrap 4 подходы.
+- Поддерживайте accessibility: `aria-label`, `visually-hidden`, корректные `button`/`a`, возврат фокуса в offcanvas/modal и видимые состояния focus.
+- При добавлении языковых ключей обновляйте обе локали `en-GB` и `ru-RU`.
 
-- **Run full test suite**: `pnpm test`
-- **Run single PHP test**: `php vendor/bin/phpunit --filter testName path/to/test/file.php`
-- **Run single JS/TS test**: `pnpm test -- --testNamePattern="test name"`
-- **Before committing**: run at least lint and tests: `pnpm lint && pnpm test`
-- **Notes**:
-  - No PHPUnit configuration currently present in the project root
-  - Tests should follow Joomla! 6 testing conventions when implemented
-  - Use `--filter` flag to target specific test methods in PHP
+## Проверка перед сдачей
 
-## Code Style Guidelines
+Минимальный набор:
 
-### PHP (Joomla! Module)
+- `pnpm build`
+- `pnpm test`
+- `pnpm zip`
 
-This project is an extension for Joomla 6: product filtering module.
-Before generating/refactoring the code, be sure to read docs https://manual.joomla.org/docs/ for version 6 using webfetch/websearch
-All PHP code follows **Joomla! coding standards** and **PSR-12** guidelines:
+Если Node.js недоступен, явно сообщите, что команды не запускались из-за окружения.
+Для функциональной проверки установите zip в Joomla 6 по адресу https://magazin-gefest-new.local/administrator/index.php?option=com_installer&view=install и проверьте как минимум главную, категорию, карточку товара, корзину, checkout, поиск, логин, 403/404 и offline page.
 
-#### Formatting
+## Ограничения и известные состояния
 
-- Use 4 spaces for indentation
-- Class opening brace on new line
-- Function/method opening brace on same line as declaration
-- No trailing whitespace
-- Blank lines between methods and logical sections
-
-#### Good example:
-
-```php
-class MyClass extends \Joomla\CMS\Module\Module
-{
-    protected function hello()
-    {
-        return 'Hello';
-    }
-}
-```
-
-#### Bad example:
-
-```php
-class MyClass extends \Joomla\CMS\Module\Module{protected function hello(){return'Hello';}}
-```
-
-### JavaScript/TypeScript (Frontend)
-
-When implementing frontend JS:
-
-#### Module System
-
-- ES6 module syntax with explicit imports
-- Use Joomla! web asset manager for script loading
-
-#### Formatting
-
-- 2 spaces for indentation (consistent with Prettier)
-- Single quotes for strings
-- Semicolons required
-
-#### Naming Conventions
-
-- Variables/Functions: camelCase (e.g., `prepareFilter()`, `getAjax`)
-- Classes: PascalCase
-- Constants: UPPER_CASE
-
-#### Good example:
-
-```javascript
-import { Component } from '@joomla/component';
-
-export class PrepareFilter {
-    static const MAX_ITEMS = 100;
-
-    getAjax() {
-        // ...
-    }
-}
-```
-
-#### Bad example:
-
-```javascript
-import{Component}from'@joomla/component';exportclassPrepareFilter{staticconstMAX_ITEMS=100;getAjax(){}}
-```
-
-## AI Coding Agents Guidelines
-
-Always:
-
-- Respect existing Joomla 6 architecture and module structure.
-- Read docs before making significant changes to business logic.
-- Maintain compatibility with Joomla 6 and the existing module API.
-- Write meaningful commit messages and comments when appropriate.
-
-Ask first:
-
-- Before adding new Composer/npm/pnpm dependencies.
-- Before changing database structure, environment configurations, or CI/CD.
-- Before performing large refactoring that touches multiple layers (dispatcher, helpers, templates).
-
-Never:
-
-- Commit secrets, passwords, or API keys.
-- Edit vendor/ or core Joomla files.
-- Break backward compatibility without explicit instruction.
-
-## Documentation & References
-
-Before generating or refactoring code, the agent must:
-- If necessary, consult the official manual at https://manual.joomla.org/ for Joomla 6.
-
-## Frontend Testing
-
-The frontend is accessible at https://magazin-gefest-new.local
-
-- The development server is always running and requires no additional setup
-- Use this URL for manual testing of interface changes
-- Responsive design should be tested across device size
+- Это не полный сайт Joomla, а только модуль, устанавливаемый как расширение. Корневые PHP-файлы нельзя полноценно запускать вне Joomla application context.
+- Автоматических тестов пока нет; `pnpm test` является заглушкой.
