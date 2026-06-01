@@ -25,18 +25,18 @@ defined('_JEXEC') or die;
 
 $checked = '';
 if (isset($filter->active['good_price']) && (int) $filter->active['good_price'] === 1) {
-	$checked = 'checked';
+    $checked = 'checked';
 }
 ?>
-<li>
-     <input type="hidden" name="good_price" value="0">
-     <div class="form-check form-switch">
-         <input class="form-check-input"
-                type="checkbox"
-                role="switch"
-                id="ishop_good_price_bool"
-                name="good_price"
-                value="1" <?php echo $checked; ?>>
-         <label class="form-check-label" for="ishop_good_price_bool"><?php echo Text::_('MOD_ISHOP_FILTER_BY_SALES'); ?></label>
-     </div>
- </li>
+<div class="nav-link">
+    <input type="hidden" name="good_price" value="0">
+    <div class="form-check form-switch">
+        <input class="form-check-input"
+               type="checkbox"
+               role="switch"
+               id="ishop_good_price_bool"
+               name="good_price"
+               value="1" <?php echo $checked; ?>>
+        <label class="form-check-label" for="ishop_good_price_bool"><?php echo Text::_('MOD_ISHOP_FILTER_BY_SALES'); ?></label>
+    </div>
+</div>

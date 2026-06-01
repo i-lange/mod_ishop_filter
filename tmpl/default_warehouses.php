@@ -22,35 +22,17 @@ defined('_JEXEC') or die;
  * @var Joomla\CMS\WebAsset\WebAssetManager $wa
  * @var string $captcha
  * @var object $filter
+ * @var array $subPanels
  */
 
-$access_levels = Factory::getApplication()->getIdentity()->getAuthorisedViewLevels();
-$warehouses_access = $params->get('warehouses_access', 0);
+$accessLevels = Factory::getApplication()->getIdentity()->getAuthorisedViewLevels();
+$warehousesAccess = (int) $params->get('warehouses_access', 0);
 ?>
-<?php if ($warehouses_access > 0 && in_array($warehouses_access, $access_levels)) : ?>
-    <li class="parent">
-        <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_WAREHOUSES'); ?></span>
-        <input type="hidden" name="warehouses[]" value="0">
-        <ul class="list-unstyled">
-            <?php foreach($filter->warehouses as $warehouse) : ?>
-                <li>
-                    <div class="form-check">
-                        <?php
-                        $checked = '';
-                        if (in_array($warehouse->id, $filter->active['warehouses'])) {
-                            $checked = 'checked';
-                        }
-                        ?>
-                        <input class="form-check-input"
-                                id="warehouse-<?php echo $warehouse->id; ?>"
-                                type="checkbox"
-                                name="warehouses[]"
-                                value="<?php echo $warehouse->id; ?>" <?php echo $checked; ?>>
-                        <label class="form-check-label"
-                                for="warehouse-<?php echo $warehouse->id; ?>"><?php echo $warehouse->title; ?></label>
-                    </div>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </li>
+<?php if ($warehousesAccess > 0 && in_array($warehousesAccess, $accessLevels)) : ?>
+    <?php
+    // Добавляем панель с выбором склада
+    $subPanels['warehouses']['title'] = Text::_('MOD_ISHOP_FILTER_BY_WAREHOUSES');
+    $subPanels['warehouses']['alias'] = 'warehouses';
+    ?>
+    <span class="nav-link separator" data-panel-target="off-panel-warehouses"><?php echo Text::_('MOD_ISHOP_FILTER_BY_WAREHOUSES'); ?></span>
 <?php endif; ?>

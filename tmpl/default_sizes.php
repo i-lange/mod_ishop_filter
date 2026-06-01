@@ -22,136 +22,78 @@ defined('_JEXEC') or die;
  * @var string $captcha
  * @var object $filter
  */
+
+$dimensions = [
+    'width' => [
+        'enabled' => 'show_width',
+        'label' => 'MOD_ISHOP_FILTER_BY_WIDTH',
+        'min' => 'min_width',
+        'max' => 'max_width',
+    ],
+    'height' => [
+        'enabled' => 'show_height',
+        'label' => 'MOD_ISHOP_FILTER_BY_HEIGHT',
+        'min' => 'min_height',
+        'max' => 'max_height',
+    ],
+    'depth' => [
+        'enabled' => 'show_depth',
+        'label' => 'MOD_ISHOP_FILTER_BY_DEPTH',
+        'min' => 'min_depth',
+        'max' => 'max_depth',
+    ],
+    'weight' => [
+        'enabled' => 'show_weight',
+        'label' => 'MOD_ISHOP_FILTER_BY_WEIGHT',
+        'min' => 'min_weight',
+        'max' => 'max_weight',
+    ],
+];
 ?>
-<?php if ($params->get('show_width', 0) && ($filter->main->min_width > 0 || $filter->main->max_width > 0)) : ?>
-     <li>
-         <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_WIDTH'); ?></span>
-         <div class="row g-3">
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="min_width" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="min_width"
-                            min="<?php echo (int) $filter->main->min_width; ?>"
-                            max="<?php echo (int) $filter->main->max_width; ?>"
-                            name="min_width"
-                            placeholder="<?php echo (int) $filter->main->min_width; ?>"
-                            value="<?php echo ($filter->active['min_width'] > 0) ? (int) $filter->active['min_width'] : ''; ?>">
-                 </div>
-             </div>
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="max_width" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="max_width"
-                            min="<?php echo (int) $filter->main->min_width; ?>"
-                            max="<?php echo (int) $filter->main->max_width ?>"
-                            name="max_width"
-                            placeholder="<?php echo (int) $filter->main->max_width; ?>"
-                            value="<?php echo ($filter->active['max_width'] > 0) ? (int) $filter->active['max_width'] : ''; ?>">
-                 </div>
-             </div>
-         </div>
-     </li>
- <?php endif; ?>
- <?php if ($params->get('show_height', 0) && ($filter->main->min_height > 0 || $filter->main->max_height > 0)) : ?>
-     <li>
-         <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_HEIGHT'); ?></span>
-         <div class="row g-3">
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="min_height" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="min_height"
-                            min="<?php echo (int) $filter->main->min_height; ?>"
-                            max="<?php echo (int) $filter->main->max_height; ?>"
-                            name="min_height"
-                            placeholder="<?php echo (int) $filter->main->min_height; ?>"
-                            value="<?php echo ($filter->active['min_height'] > 0) ? (int) $filter->active['min_height'] : ''; ?>">
-                 </div>
-             </div>
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="max_height" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="max_height"
-                            min="<?php echo (int) $filter->main->min_height; ?>"
-                            max="<?php echo (int) $filter->main->max_height ?>"
-                            name="max_height"
-                            placeholder="<?php echo (int) $filter->main->max_height; ?>"
-                            value="<?php echo ($filter->active['max_height'] > 0) ? (int) $filter->active['max_height'] : ''; ?>">
-                 </div>
-             </div>
-         </div>
-     </li>
- <?php endif; ?>
- <?php if ($params->get('show_depth', 0) && ($filter->main->min_depth > 0 || $filter->main->max_depth > 0)) : ?>
-     <li>
-         <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_DEPTH'); ?></span>
-         <div class="row g-3">
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="min_depth" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="min_depth"
-                            min="<?php echo (int) $filter->main->min_depth; ?>"
-                            max="<?php echo (int) $filter->main->max_depth; ?>"
-                            name="min_depth"
-                            placeholder="<?php echo (int) $filter->main->min_depth; ?>"
-                            value="<?php echo ($filter->active['min_depth'] > 0) ? (int) $filter->active['min_depth'] : ''; ?>">
-                 </div>
-             </div>
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="max_depth" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="max_depth"
-                            min="<?php echo (int) $filter->main->min_depth; ?>"
-                            max="<?php echo (int) $filter->main->max_depth ?>"
-                            name="max_depth"
-                            placeholder="<?php echo (int) $filter->main->max_depth; ?>"
-                            value="<?php echo ($filter->active['max_depth'] > 0) ? (int) $filter->active['max_depth'] : ''; ?>">
-                 </div>
-             </div>
-         </div>
-     </li>
- <?php endif; ?>
- <?php if ($params->get('show_weight', 0) && ($filter->main->min_weight > 0 || $filter->main->max_weight > 0)) : ?>
-     <li>
-         <span><?php echo Text::_('MOD_ISHOP_FILTER_BY_WEIGHT'); ?></span>
-         <div class="row g-3">
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="min_weight" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="min_weight"
-                            min="<?php echo (int) $filter->main->min_weight; ?>"
-                            max="<?php echo (int) $filter->main->max_weight; ?>"
-                            name="min_weight"
-                            placeholder="<?php echo (int) $filter->main->min_depth; ?>"
-                            value="<?php echo ($filter->active['min_weight'] > 0) ? (int) $filter->active['min_weight'] : ''; ?>">
-                 </div>
-             </div>
-             <div class="col-md-6">
-                 <div class="mb-3">
-                     <label for="max_weight" class="form-label"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>
-                     <input type="number"
-                            class="form-control"
-                            id="max_weight"
-                            min="<?php echo (int) $filter->main->min_weight; ?>"
-                            max="<?php echo (int) $filter->main->max_weight ?>"
-                            name="max_weight"
-                            placeholder="<?php echo (int) $filter->main->max_weight; ?>"
-                            value="<?php echo ($filter->active['max_weight'] > 0) ? (int) $filter->active['max_weight'] : ''; ?>">
-                 </div>
-             </div>
-         </div>
-     </li>
- <?php endif; ?>
+<?php foreach ($dimensions as $dimension) : ?>
+    <?php
+    $minName = $dimension['min'];
+    $maxName = $dimension['max'];
+    $minValue = (int) round((float) $filter->main->$minName);
+    $maxValue = (int) round((float) $filter->main->$maxName);
+    $activeMin = (($filter->active[$minName] ?? 0) > 0) ? (int) round((float) $filter->active[$minName]) : '';
+    $activeMax = (($filter->active[$maxName] ?? 0) > 0) ? (int) round((float) $filter->active[$maxName]) : '';
+    $show = $params->get($dimension['enabled'], 0) && ($minValue > 0 || $maxValue > 0) && $minValue !== $maxValue;
+    ?>
+    <?php if ($show) : ?>
+        <span><?php echo Text::_($dimension['label']); ?></span>
+        <div class="range">
+            <div class="range-inputs">
+                <div class="input">
+                    <input class="form-control range-min"
+                           id="<?php echo $minName; ?>"
+                           type="number"
+                           step="1"
+                           min="<?php echo $minValue; ?>"
+                           max="<?php echo $maxValue; ?>"
+                           name="<?php echo $minName; ?>"
+                           placeholder="<?php echo $minValue; ?>"
+                           value="<?php echo $activeMin; ?>">
+                    <label class="form-label input__hint" for="<?php echo $minName; ?>"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
+                </div>
+                <div class="input">
+                    <input class="form-control range-max"
+                           id="<?php echo $maxName; ?>"
+                           type="number"
+                           step="1"
+                           min="<?php echo $minValue; ?>"
+                           max="<?php echo $maxValue; ?>"
+                           name="<?php echo $maxName; ?>"
+                           placeholder="<?php echo $maxValue; ?>"
+                           value="<?php echo $activeMax; ?>">
+                    <label class="form-label input__hint" for="<?php echo $maxName; ?>"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>
+                </div>
+            </div>
+            <div class="range-slider">
+                <div class="range-slider__line"></div>
+                <div class="range-slider__point range-slider__point--upper"></div>
+                <div class="range-slider__point range-slider__point--lower"></div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>

@@ -17,90 +17,159 @@ class IshopFilter {
     this.currentRequest = null;
     this.debounceTimer = null;
     this.debounceDelay = 300;
+    this.previewUrl = this.form.dataset.previewUrl || this.buildEndpoint("filter.preview");
+    this.resetUrl = this.form.dataset.resetUrl || this.buildEndpoint("filter.reset");
+    this.submitTemplate = this.form.dataset.submitTemplate || "";
+    this.sefUrl = this.form.action || window.location.href;
+    this.baseUrl = "";
 
+    this.updateSubmitText(this.getInitialProductCount());
     this.bindEvents();
   }
 
   bindEvents() {
     const inputs = this.form.querySelectorAll("input, select, textarea");
     inputs.forEach((input) => {
-      if (input.type === "submit" || input.type === "button") {
+      if (this.isButtonControl(input)) {
         return;
       }
-      input.addEventListener("change", () => this.debouncedSend());
+
+      input.addEventListener("change", () => {
+        if (input.type === "number") {
+          this.roundNumberInput(input);
+        }
+        this.debouncedSend();
+      });
+
       if (input.type === "number" || input.type === "text") {
         input.addEventListener("input", () => this.debouncedSend());
+        input.addEventListener("blur", () => this.roundNumberInput(input));
       }
     });
 
-    const resetBtn = document.getElementById("ishop-filter-reset");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", (e) => {
-        e.preventDefault();
+    this.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.submit();
+    });
+
+    this.getAssociatedElements("[data-filter-reset]").forEach((resetBtn) => {
+      resetBtn.addEventListener("click", (event) => {
+        event.preventDefault();
         this.reset();
       });
+    });
+  }
+
+  getAssociatedElements(selector) {
+    const elements = Array.from(this.form.querySelectorAll(selector));
+    const externalSelector = `[form="${this.formId}"]${selector}, [form="${this.formId}"] ${selector}`;
+
+    document.querySelectorAll(externalSelector).forEach((element) => {
+      if (!elements.includes(element)) {
+        elements.push(element);
+      }
+    });
+
+    return elements;
+  }
+
+  buildEndpoint(task) {
+    let root = "";
+    if (typeof Joomla !== "undefined" && Joomla.getOptions) {
+      const paths = Joomla.getOptions("system.paths", {});
+      root = paths.root || "";
     }
+
+    return `${root}/index.php?option=com_ishop&task=${task}&format=json`;
+  }
+
+  getInitialProductCount() {
+    const countEl = this.getCountElement();
+    if (countEl) {
+      return this.toInteger(countEl.dataset.count || countEl.textContent);
+    }
+
+    return this.toInteger(this.form.dataset.productCount);
+  }
+
+  getCountElement() {
+    const previous = this.form.previousElementSibling;
+    const localCount = previous ? previous.querySelector(".count-value") : null;
+
+    if (localCount) {
+      return localCount;
+    }
+
+    const container =
+      this.form.closest(".mod_ishop_filter") ||
+      this.form.closest(".offcanvas") ||
+      this.form.closest(".offcanvas-body") ||
+      this.form.parentElement;
+
+    return container ? container.querySelector(".count-value") : null;
   }
 
   collectFormData() {
-    const formData = {};
-    const inputs = this.form.querySelectorAll("input, select, textarea");
+    const formData = new FormData();
+    const controls = this.form.querySelectorAll("input, select, textarea");
 
-    inputs.forEach((input) => {
-      if (input.type === "submit" || input.type === "button") {
-        return;
-      }
-      if (input.disabled) {
+    controls.forEach((control) => {
+      if (!this.isSuccessfulControl(control)) {
         return;
       }
 
-      const name = input.name;
-      if (!name) {
+      if (control.tagName === "SELECT" && control.multiple) {
+        Array.from(control.selectedOptions).forEach((option) => {
+          formData.append(control.name, option.value);
+        });
         return;
       }
 
-      if (input.type === "checkbox") {
-        if (input.checked) {
-          if (name.endsWith("[]")) {
-            const key = name.slice(0, -2);
-            if (!formData[key]) {
-              formData[key] = [];
-            }
-            formData[key].push(input.value);
-          } else {
-            formData[name] = input.value;
-          }
-        }
-      } else if (input.type === "radio") {
-        if (input.checked) {
-          formData[name] = input.value;
-        }
-      } else {
-        if (name.endsWith("[]")) {
-          const key = name.slice(0, -2);
-          if (!formData[key]) {
-            formData[key] = [];
-          }
-          if (input.value !== "") {
-            formData[key].push(input.value);
-          }
-        } else {
-          formData[name] = input.value;
-        }
+      const value = control.type === "number" ? this.roundValue(control.value) : control.value;
+      if (value === null || value === "") {
+        return;
       }
+
+      formData.append(control.name, value);
     });
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
-    const view = urlParams.get("view") || urlParams.get("controller");
-    if (id) {
-      formData.category_id = parseInt(id, 10);
+    const categoryId = this.getContextInteger("categoryId", "id");
+    if (categoryId > 0) {
+      formData.set("category_id", String(categoryId));
     }
-    if (view) {
-      formData.view = view;
+
+    const itemId = this.getContextInteger("itemId", "Itemid");
+    if (itemId > 0) {
+      formData.set("Itemid", String(itemId));
     }
 
     return formData;
+  }
+
+  isSuccessfulControl(control) {
+    if (!control.name || control.disabled || this.isButtonControl(control)) {
+      return false;
+    }
+
+    if ((control.type === "checkbox" || control.type === "radio") && !control.checked) {
+      return false;
+    }
+
+    return true;
+  }
+
+  isButtonControl(control) {
+    return ["submit", "button", "reset", "file"].includes(control.type);
+  }
+
+  getContextInteger(datasetKey, queryKey) {
+    const fromDataset = this.toInteger(this.form.dataset[datasetKey]);
+    if (fromDataset > 0) {
+      return fromDataset;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    return this.toInteger(urlParams.get(queryKey));
   }
 
   debouncedSend() {
@@ -108,126 +177,222 @@ class IshopFilter {
     this.debounceTimer = setTimeout(() => this.sendAjax(), this.debounceDelay);
   }
 
-  sendAjax() {
+  submit() {
+    clearTimeout(this.debounceTimer);
+    this.sendAjax({ redirectOnSuccess: true });
+  }
+
+  sendAjax(options = {}) {
     const data = this.collectFormData();
 
-    if (!data.category_id) {
-      return;
+    if (!data.get("category_id")) {
+      if (options.redirectOnSuccess) {
+        this.redirectTo(this.sefUrl);
+      }
+      return Promise.resolve(null);
     }
 
-    const csrfToken = Joomla.getOptions("csrf.token", "");
+    const csrfToken = this.getCsrfToken();
     if (!csrfToken) {
+      if (options.redirectOnSuccess) {
+        this.redirectTo(this.sefUrl);
+      }
+      return Promise.resolve(null);
+    }
+
+    data.set(csrfToken, "1");
+    this.abortCurrentRequest();
+    this.showLoading();
+
+    return new Promise((resolve) => {
+      const request = Joomla.request({
+        url: this.previewUrl,
+        method: "POST",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data: this.encodeFormData(data),
+        onSuccess: (response) => {
+          const parsed = this.parseResponse(response);
+          if (parsed && parsed.success && parsed.data) {
+            this.updateUI(parsed.data);
+
+            if (options.redirectOnSuccess) {
+              this.openFilterResult(parsed.data.sefUrl || this.sefUrl);
+            }
+
+            resolve(parsed.data);
+            return;
+          }
+
+          console.error("IshopFilter: Invalid preview response", parsed);
+          if (options.redirectOnSuccess) {
+            this.redirectTo(this.sefUrl);
+          }
+          resolve(null);
+        },
+        onError: (xhr) => {
+          console.error("IshopFilter: AJAX request failed", xhr);
+          if (options.redirectOnSuccess) {
+            this.redirectTo(this.sefUrl);
+          }
+          resolve(null);
+        },
+        onComplete: () => {
+          if (this.currentRequest === request) {
+            this.currentRequest = null;
+            this.hideLoading();
+          }
+        },
+      });
+
+      this.currentRequest = request;
+    });
+  }
+
+  reset() {
+    clearTimeout(this.debounceTimer);
+    this.abortCurrentRequest();
+
+    const categoryId = this.getContextInteger("categoryId", "id");
+    const csrfToken = this.getCsrfToken();
+
+    if (!categoryId || !csrfToken) {
+      this.redirectTo(this.baseUrl || this.form.action);
       return;
     }
 
-    if (this.currentRequest) {
-      this.currentRequest.abort();
+    const data = new FormData();
+    data.set("category_id", String(categoryId));
+    data.set(csrfToken, "1");
+
+    const itemId = this.getContextInteger("itemId", "Itemid");
+    if (itemId > 0) {
+      data.set("Itemid", String(itemId));
     }
 
     this.showLoading();
 
-    const requestData = Object.assign({}, data);
-    requestData[csrfToken] = 1;
-
-    this.currentRequest = Joomla.request({
-      url: "?option=com_ajax&module=ishop_filter&format=json",
+    const request = Joomla.request({
+      url: this.resetUrl,
       method: "POST",
       headers: {
         "Cache-Control": "no-cache",
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      data: new URLSearchParams(requestData).toString(),
+      data: this.encodeFormData(data),
       onSuccess: (response) => {
-        try {
-          const parsed =
-            typeof response === "string" ? JSON.parse(response) : response;
-          if (parsed.success && parsed.data) {
-            this.updateUI(parsed.data);
-          }
-        } catch (e) {
-          console.error("IshopFilter: Failed to parse response", e);
+        const parsed = this.parseResponse(response);
+        if (parsed && parsed.success && parsed.data && parsed.data.baseUrl) {
+          this.redirectTo(parsed.data.baseUrl);
+          return;
         }
+
+        console.error("IshopFilter: Invalid reset response", parsed);
+        this.redirectTo(this.baseUrl || this.form.action);
       },
       onError: (xhr) => {
-        console.error("IshopFilter: AJAX request failed", xhr);
+        console.error("IshopFilter: Reset request failed", xhr);
+        this.redirectTo(this.baseUrl || this.form.action);
       },
       onComplete: () => {
-        this.currentRequest = null;
-        this.hideLoading();
+        if (this.currentRequest === request) {
+          this.currentRequest = null;
+          this.hideLoading();
+        }
       },
     });
+
+    this.currentRequest = request;
   }
 
   updateUI(data) {
-    const productCount = data.productCount ?? 0;
-    const countEl = this.form
-      .closest(".offcanvas-body")
-      ?.querySelector(".count-value");
+    const productCount = this.toInteger(data.productCount);
+    const countEl = this.getCountElement();
     if (countEl) {
       countEl.textContent = productCount;
       countEl.dataset.count = productCount;
     }
+
+    this.form.dataset.productCount = String(productCount);
+    this.updateSubmitText(productCount);
+    this.sefUrl = data.sefUrl || this.sefUrl;
+    this.baseUrl = data.baseUrl || this.baseUrl;
 
     const available = data.availableOptions || {};
 
     this.updateCheckboxes(
       'input[name="manufacturers[]"]',
       available.manufacturers || [],
-      (input) => input.value,
     );
 
     this.updateCheckboxes(
       'input[name="warehouses[]"]',
       available.warehouses || [],
-      (input) => parseInt(input.value, 10),
     );
 
-    if (available.isshop_fields) {
-      this.updateFields(available.isshop_fields);
+    if (available.ishop_fields) {
+      this.updateFields(available.ishop_fields);
     }
 
     if (available.price_range) {
-      this.updateRange("min_price", available.price_range.min);
-      this.updateRange("max_price", available.price_range.max);
+      this.updateRangePair("min_price", "max_price", available.price_range);
     }
 
     if (available.sizes) {
       if (available.sizes.width) {
-        this.updateRange("min_width", available.sizes.width.min);
-        this.updateRange("max_width", available.sizes.width.max);
+        this.updateRangePair("min_width", "max_width", available.sizes.width);
       }
       if (available.sizes.height) {
-        this.updateRange("min_height", available.sizes.height.min);
-        this.updateRange("max_height", available.sizes.height.max);
+        this.updateRangePair("min_height", "max_height", available.sizes.height);
       }
       if (available.sizes.depth) {
-        this.updateRange("min_depth", available.sizes.depth.min);
-        this.updateRange("max_depth", available.sizes.depth.max);
+        this.updateRangePair("min_depth", "max_depth", available.sizes.depth);
       }
       if (available.sizes.weight) {
-        this.updateRange("min_weight", available.sizes.weight.min);
-        this.updateRange("max_weight", available.sizes.weight.max);
+        this.updateRangePair("min_weight", "max_weight", available.sizes.weight);
       }
     }
   }
 
-  updateCheckboxes(selector, availableIds, valueMapper) {
-    const checkboxes = this.form.querySelectorAll(selector);
+  updateSubmitText(productCount) {
+    const label = this.getAssociatedElements("[data-filter-submit-text]")[0];
+    if (!label) {
+      return;
+    }
+
+    if (!this.submitTemplate) {
+      label.textContent = String(productCount);
+      return;
+    }
+
+    label.textContent = this.submitTemplate
+      .replace("%s", String(productCount))
+      .replace("%d", String(productCount));
+  }
+
+  updateCheckboxes(selector, availableIds) {
+    const available = new Set((availableIds || []).map((id) => String(id)));
+    const checkboxes = Array.from(this.form.querySelectorAll(selector)).filter(
+      (input) => input.type !== "hidden",
+    );
+
     checkboxes.forEach((input) => {
-      const val = valueMapper(input);
-      const isAvailable = availableIds.includes(val);
-      input.disabled = !isAvailable;
+      const isAvailable = available.has(String(input.value));
+      const isEnabled = isAvailable || input.checked;
+      input.disabled = !isEnabled;
 
       const label =
         input.closest("label") ||
         this.form.querySelector(`label[for="${input.id}"]`);
       if (label) {
-        label.classList.toggle("disabled", !isAvailable);
+        label.classList.toggle("disabled", !isEnabled);
       }
 
-      const parentLi = input.closest("li");
-      if (parentLi) {
-        parentLi.classList.toggle("filter-option-disabled", !isAvailable);
+      const parent = input.closest(".form-check") || input.closest("li");
+      if (parent) {
+        parent.classList.toggle("filter-option-disabled", !isEnabled);
       }
     });
 
@@ -235,105 +400,239 @@ class IshopFilter {
   }
 
   updateFields(fieldsData) {
+    const returnedFieldIds = new Set(Object.keys(fieldsData));
+
     Object.keys(fieldsData).forEach((fieldId) => {
       const fieldInfo = fieldsData[fieldId];
 
       if (fieldInfo.type === "range") {
-        const minInput = this.form.querySelector(
-          `input[name="ishop_fields[${fieldId}][min]"]`,
+        this.updateRangePair(
+          `ishop_fields[${fieldId}][min]`,
+          `ishop_fields[${fieldId}][max]`,
+          fieldInfo,
         );
-        const maxInput = this.form.querySelector(
-          `input[name="ishop_fields[${fieldId}][max]"]`,
-        );
-        if (minInput) {
-          minInput.min = fieldInfo.min;
-          minInput.max = fieldInfo.max;
-        }
-        if (maxInput) {
-          maxInput.min = fieldInfo.min;
-          maxInput.max = fieldInfo.max;
-        }
       } else if (fieldInfo.type === "list") {
-        const availableValues = Object.keys(fieldInfo.values || {});
-        const checkboxes = this.form.querySelectorAll(
+        this.updateCheckboxes(
           `input[name="ishop_fields[${fieldId}][]"]`,
+          Object.keys(fieldInfo.values || {}),
         );
-        checkboxes.forEach((input) => {
-          const isAvailable = availableValues.includes(input.value);
-          input.disabled = !isAvailable;
-          const label =
-            input.closest("label") ||
-            this.form.querySelector(`label[for="${input.id}"]`);
-          if (label) {
-            label.classList.toggle("disabled", !isAvailable);
-          }
-          const parentLi = input.closest("li");
-          if (parentLi) {
-            parentLi.classList.toggle("filter-option-disabled", !isAvailable);
-          }
-        });
-        this.updateGroupVisibility(`input[name="ishop_fields[${fieldId}][]"]`);
+      } else if (fieldInfo.type === "boolean") {
+        this.updateBooleanField(fieldId, true);
       }
+    });
+
+    this.disableMissingFieldOptions(returnedFieldIds);
+  }
+
+  updateBooleanField(fieldId, available) {
+    const input = this.form.querySelector(`input[type="checkbox"][name="ishop_fields[${fieldId}]"]`);
+    if (!input) {
+      return;
+    }
+
+    const isEnabled = available || input.checked;
+    input.disabled = !isEnabled;
+
+    const label =
+      input.closest("label") ||
+      this.form.querySelector(`label[for="${input.id}"]`);
+    if (label) {
+      label.classList.toggle("disabled", !isEnabled);
+    }
+
+    const parent = input.closest(".form-check") || input.closest("li");
+    if (parent) {
+      parent.classList.toggle("filter-option-disabled", !isEnabled);
+    }
+  }
+
+  disableMissingFieldOptions(returnedFieldIds) {
+    const missingListIds = new Set();
+    const missingBooleanIds = new Set();
+
+    this.form.querySelectorAll('input[name^="ishop_fields["]').forEach((input) => {
+      const match = input.name.match(/^ishop_fields\[(\d+)]/);
+      if (!match || returnedFieldIds.has(match[1])) {
+        return;
+      }
+
+      if (input.name.endsWith("[]")) {
+        missingListIds.add(match[1]);
+      } else if (input.type === "checkbox") {
+        missingBooleanIds.add(match[1]);
+      }
+    });
+
+    missingListIds.forEach((fieldId) => {
+      this.updateCheckboxes(`input[name="ishop_fields[${fieldId}][]"]`, []);
+    });
+
+    missingBooleanIds.forEach((fieldId) => {
+      this.updateBooleanField(fieldId, false);
     });
   }
 
-  updateRange(name, value) {
-    const input = this.form.querySelector(`input[name="${name}"]`);
-    if (input) {
-      if (name.startsWith("min_")) {
-        input.min = value;
-      } else {
-        input.max = value;
-      }
+  updateRangePair(minName, maxName, range) {
+    const min = this.toInteger(range.min);
+    const max = this.toInteger(range.max);
+    const minInput = this.form.querySelector(`input[name="${minName}"]`);
+    const maxInput = this.form.querySelector(`input[name="${maxName}"]`);
+
+    if (minInput) {
+      minInput.min = min;
+      minInput.max = max;
+      minInput.placeholder = min;
+      minInput.step = 1;
+    }
+
+    if (maxInput) {
+      maxInput.min = min;
+      maxInput.max = max;
+      maxInput.placeholder = max;
+      maxInput.step = 1;
     }
   }
 
   updateGroupVisibility(selector) {
-    const firstInput = this.form.querySelector(selector);
-    if (!firstInput) {
+    const checkboxes = Array.from(this.form.querySelectorAll(selector)).filter(
+      (input) => input.type !== "hidden",
+    );
+    if (!checkboxes.length) {
       return;
     }
-    const group = firstInput.closest("li");
+
+    const group =
+      checkboxes[0].closest("ul")?.closest("li") ||
+      checkboxes[0].closest("[data-panel]") ||
+      checkboxes[0].closest("li");
+
     if (!group) {
       return;
     }
-    const checkboxes = group.querySelectorAll(selector);
-    const allDisabled = Array.from(checkboxes).every((cb) => cb.disabled);
+
+    const allDisabled = checkboxes.every((checkbox) => checkbox.disabled);
     group.classList.toggle("filter-group-empty", allDisabled);
   }
 
-  reset() {
-    const inputs = this.form.querySelectorAll("input, select, textarea");
-    inputs.forEach((input) => {
-      if (input.type === "submit" || input.type === "button") {
-        return;
-      }
-      if (input.type === "checkbox" || input.type === "radio") {
-        input.checked = false;
-      } else {
-        input.value = "";
-      }
-      input.disabled = false;
-    });
-
-    const labels = this.form.querySelectorAll("label.disabled");
-    labels.forEach((label) => label.classList.remove("disabled"));
-
-    const disabledItems = this.form.querySelectorAll(
-      ".filter-option-disabled, .filter-group-empty",
-    );
-    disabledItems.forEach((el) => {
-      el.classList.remove("filter-option-disabled", "filter-group-empty");
-    });
-
-    clearTimeout(this.debounceTimer);
-    if (this.currentRequest) {
-      this.currentRequest.abort();
-      this.currentRequest = null;
+  roundNumberInput(input) {
+    const value = this.roundValue(input.value);
+    if (value !== null && value !== "") {
+      input.value = value;
     }
-    this.hideLoading();
+  }
 
-    this.form.submit();
+  roundValue(value) {
+    if (value === null || value === undefined || value === "") {
+      return "";
+    }
+
+    const number = Number(String(value).replace(",", "."));
+    if (!Number.isFinite(number)) {
+      return null;
+    }
+
+    return String(Math.max(0, Math.round(number)));
+  }
+
+  toInteger(value) {
+    const number = Number(String(value ?? "0").replace(",", "."));
+    return Number.isFinite(number) ? Math.max(0, Math.round(number)) : 0;
+  }
+
+  getCsrfToken() {
+    if (typeof Joomla === "undefined" || !Joomla.getOptions) {
+      return "";
+    }
+
+    return Joomla.getOptions("csrf.token", "");
+  }
+
+  encodeFormData(formData) {
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => {
+      params.append(key, value);
+    });
+
+    return params.toString();
+  }
+
+  parseResponse(response) {
+    try {
+      return typeof response === "string" ? JSON.parse(response) : response;
+    } catch (error) {
+      console.error("IshopFilter: Failed to parse response", error);
+      return null;
+    }
+  }
+
+  abortCurrentRequest() {
+    if (this.currentRequest && typeof this.currentRequest.abort === "function") {
+      this.currentRequest.abort();
+    }
+
+    this.currentRequest = null;
+  }
+
+  redirectTo(url) {
+    if (url) {
+      window.location.href = url;
+    }
+  }
+
+  openFilterResult(url) {
+    if (this.hasRawFilterQuery(url)) {
+      this.submitNative();
+      return;
+    }
+
+    this.redirectTo(url);
+  }
+
+  hasRawFilterQuery(url) {
+    if (!url) {
+      return false;
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url, window.location.origin);
+    } catch (error) {
+      return false;
+    }
+
+    const rawFilterKeys = [
+      "good_price",
+      "manufacturers",
+      "max_depth",
+      "max_height",
+      "max_price",
+      "max_weight",
+      "max_width",
+      "min_depth",
+      "min_height",
+      "min_price",
+      "min_weight",
+      "min_width",
+      "warehouses",
+    ];
+
+    for (const key of parsedUrl.searchParams.keys()) {
+      if (key === "ishop_fields" || key.startsWith("ishop_fields[")) {
+        return true;
+      }
+
+      const normalizedKey = key.endsWith("[]") ? key.slice(0, -2) : key;
+      if (rawFilterKeys.includes(normalizedKey)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  submitNative() {
+    this.hideLoading();
+    HTMLFormElement.prototype.submit.call(this.form);
   }
 
   showLoading() {
@@ -353,10 +652,12 @@ class IshopFilter {
 
 document.addEventListener("DOMContentLoaded", () => {
   const forms = document.querySelectorAll('form[name="ishop_filter"]');
+  window.iFilters = [];
+
   forms.forEach((form) => {
     const id = form.id;
     if (id) {
-      window.iFilter = new IshopFilter(id);
+      window.iFilters.push(new IshopFilter(id));
     }
   });
 });
