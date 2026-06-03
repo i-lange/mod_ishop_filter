@@ -91,6 +91,20 @@
   transition: opacity 0.2s ease;
 }
 
+.filter-submit-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.filter-submit-hint {
+  text-align: center;
+  margin-top: 0.125rem;
+  color: var(--primary, #dc143c);
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
 label.disabled {
   cursor: not-allowed;
   color: var(--secondary, #6c757d);

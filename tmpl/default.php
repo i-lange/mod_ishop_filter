@@ -54,7 +54,13 @@ $filterTitle = Text::_('MOD_ISHOP_FILTER_MODULE_FILTERS');
 $closeText = Text::_('MOD_ISHOP_FILTER_CLOSE');
 $backText = Text::_('MOD_ISHOP_FILTER_BACK');
 $siteName = Text::_('TPL_ITHEME_SITENAME');
-$submitText = Text::sprintf('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT', (int) ($filter->total ?? 0));
+$productCount = (int) ($filter->total ?? 0);
+$submitUnavailable = $productCount === 0;
+$submitText = $submitUnavailable
+    ? Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_UNAVAILABLE')
+    : Text::sprintf('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT', $productCount);
+$submitUnavailableText = Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_UNAVAILABLE');
+$submitUnavailableHint = Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_UNAVAILABLE_HINT');
 $availableOptions = (array) ($filter->availableOptions ?? []);
 $isAvailableOption = static function ($availableIds, int $valueId, bool $checked): bool {
     if ($checked || $availableIds === null) {
@@ -114,10 +120,11 @@ $subPanels = [];
               id="<?php echo $formId; ?>"
               data-category-id="<?php echo $categoryId; ?>"
               data-item-id="<?php echo $itemId; ?>"
-              data-product-count="<?php echo (int) ($filter->total ?? 0); ?>"
+              data-product-count="<?php echo $productCount; ?>"
               data-preview-url="<?php echo htmlspecialchars($previewUrl, ENT_COMPAT, 'UTF-8'); ?>"
               data-reset-url="<?php echo htmlspecialchars($resetUrl, ENT_COMPAT, 'UTF-8'); ?>"
-              data-submit-template="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT'), ENT_COMPAT, 'UTF-8'); ?>">
+              data-submit-template="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT'), ENT_COMPAT, 'UTF-8'); ?>"
+              data-submit-unavailable-text="<?php echo htmlspecialchars($submitUnavailableText, ENT_COMPAT, 'UTF-8'); ?>">
             <div class="filter-loading-overlay" style="display: none;">
                 <div class="filter-loading-spinner">
                     <div class="spinner-border text-primary" role="status">
@@ -218,9 +225,20 @@ $subPanels = [];
         </form>
     </div>
     <div class="offcanvas-footer border-top">
-        <button class="btn btn-primary me-2" type="submit" form="<?php echo $formId; ?>">
-            <span data-filter-submit-text><?php echo $submitText; ?></span>
-        </button>
+        <div class="filter-submit-wrap me-2">
+            <button class="btn btn-primary"
+                    type="submit"
+                    form="<?php echo $formId; ?>"
+                    data-filter-submit
+                    aria-describedby="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
+                    aria-disabled="<?php echo $submitUnavailable ? 'true' : 'false'; ?>"<?php echo $submitUnavailable ? ' disabled' : ''; ?>>
+                <span data-filter-submit-text><?php echo $submitText; ?></span>
+            </button>
+            <div class="filter-submit-hint"
+                 id="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
+                 data-filter-submit-hint
+                 <?php echo $submitUnavailable ? '' : 'hidden'; ?>><?php echo $submitUnavailableHint; ?></div>
+        </div>
         <button class="btn btn-link"
                 type="button"
                 form="<?php echo $formId; ?>"

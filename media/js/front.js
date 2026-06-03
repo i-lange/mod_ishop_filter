@@ -20,8 +20,13 @@ class IshopFilter {
     this.previewUrl = this.form.dataset.previewUrl || this.buildEndpoint("filter.preview");
     this.resetUrl = this.form.dataset.resetUrl || this.buildEndpoint("filter.reset");
     this.submitTemplate = this.form.dataset.submitTemplate || "";
+    this.submitUnavailableText = this.form.dataset.submitUnavailableText || "";
     this.sefUrl = this.form.action || window.location.href;
     this.baseUrl = "";
+    this.container =
+      this.form.closest(".mod_ishop_filter") ||
+      this.form.closest(".offcanvas") ||
+      this.form.parentElement;
 
     this.updateSubmitText(this.getInitialProductCount());
     this.bindEvents();
@@ -69,6 +74,14 @@ class IshopFilter {
   getAssociatedElements(selector) {
     const elements = Array.from(this.form.querySelectorAll(selector));
     const externalSelector = `[form="${this.formId}"]${selector}, [form="${this.formId}"] ${selector}`;
+
+    if (this.container) {
+      this.container.querySelectorAll(selector).forEach((element) => {
+        if (!elements.includes(element)) {
+          elements.push(element);
+        }
+      });
+    }
 
     document.querySelectorAll(externalSelector).forEach((element) => {
       if (!elements.includes(element)) {
@@ -180,6 +193,10 @@ class IshopFilter {
   }
 
   submit() {
+    if (this.isSubmitDisabled()) {
+      return;
+    }
+
     clearTimeout(this.debounceTimer);
     this.sendAjax({ redirectOnSuccess: true });
   }
@@ -362,18 +379,34 @@ class IshopFilter {
 
   updateSubmitText(productCount) {
     const label = this.getAssociatedElements("[data-filter-submit-text]")[0];
+    const isUnavailable = productCount === 0;
+
+    this.getAssociatedElements("[data-filter-submit]").forEach((button) => {
+      button.disabled = isUnavailable;
+      button.setAttribute("aria-disabled", isUnavailable ? "true" : "false");
+    });
+
+    this.getAssociatedElements("[data-filter-submit-hint]").forEach((hint) => {
+      hint.hidden = !isUnavailable;
+    });
+
     if (!label) {
       return;
     }
 
-    if (!this.submitTemplate) {
+    if (isUnavailable && this.submitUnavailableText) {
+      label.textContent = this.submitUnavailableText;
+    } else if (!this.submitTemplate) {
       label.textContent = String(productCount);
-      return;
+    } else {
+      label.textContent = this.submitTemplate
+        .replace("%s", String(productCount))
+        .replace("%d", String(productCount));
     }
+  }
 
-    label.textContent = this.submitTemplate
-      .replace("%s", String(productCount))
-      .replace("%d", String(productCount));
+  isSubmitDisabled() {
+    return this.getAssociatedElements("[data-filter-submit]").some((button) => button.disabled);
   }
 
   updateCheckboxes(selector, availableIds) {
