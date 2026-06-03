@@ -63,6 +63,7 @@ defined('_JEXEC') or die;
                        min="<?php echo $min; ?>"
                        max="<?php echo $max; ?>"
                        name="ishop_fields[<?php echo (int) $field->id; ?>][min]"
+                       data-filter-label="<?php echo $fieldTitle; ?><?php echo (empty($field->unit)) ? '' : ', ' . $fieldUnit; ?>"
                        placeholder="<?php echo $min; ?>"
                        value="<?php echo $tmpMin; ?>">
                 <label class="form-label input__hint" for="ishop_fields_<?php echo (int) $field->id; ?>_from"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
@@ -75,6 +76,7 @@ defined('_JEXEC') or die;
                        min="<?php echo $min; ?>"
                        max="<?php echo $max; ?>"
                        name="ishop_fields[<?php echo (int) $field->id; ?>][max]"
+                       data-filter-label="<?php echo $fieldTitle; ?><?php echo (empty($field->unit)) ? '' : ', ' . $fieldUnit; ?>"
                        placeholder="<?php echo $max; ?>"
                        value="<?php echo $tmpMax; ?>">
                 <label class="form-label input__hint" for="ishop_fields_<?php echo (int) $field->id; ?>_to"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>

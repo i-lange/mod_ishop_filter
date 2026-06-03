@@ -41,6 +41,7 @@ $activeMaxPrice = (($filter->active['max_price'] ?? 0) > 0) ? (int) round((float
                    min="<?php echo $minPrice; ?>"
                    max="<?php echo $maxPrice; ?>"
                    name="min_price"
+                   data-filter-label="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_BY_PRICE'), ENT_COMPAT, 'UTF-8'); ?>"
                    placeholder="<?php echo $minPrice; ?>"
                    value="<?php echo $activeMinPrice; ?>">
             <label class="form-label input__hint" for="min_price"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
@@ -53,6 +54,7 @@ $activeMaxPrice = (($filter->active['max_price'] ?? 0) > 0) ? (int) round((float
                    min="<?php echo $minPrice; ?>"
                    max="<?php echo $maxPrice; ?>"
                    name="max_price"
+                   data-filter-label="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_BY_PRICE'), ENT_COMPAT, 'UTF-8'); ?>"
                    placeholder="<?php echo $maxPrice; ?>"
                    value="<?php echo $activeMaxPrice; ?>">
             <label class="form-label input__hint" for="max_price"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>

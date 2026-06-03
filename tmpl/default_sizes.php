@@ -63,9 +63,10 @@ $main = (array) ($filter->main ?? []);
     $activeMin = (($filter->active[$minName] ?? 0) > 0) ? (int) round((float) $filter->active[$minName]) : '';
     $activeMax = (($filter->active[$maxName] ?? 0) > 0) ? (int) round((float) $filter->active[$maxName]) : '';
     $show = $params->get($dimension['enabled'], 0) && ($baseMinValue > 0 || $baseMaxValue > 0) && $baseMinValue !== $baseMaxValue;
+    $dimensionLabel = Text::_($dimension['label']);
     ?>
     <?php if ($show) : ?>
-        <span><?php echo Text::_($dimension['label']); ?></span>
+        <span><?php echo $dimensionLabel; ?></span>
         <div class="range">
             <div class="range-inputs">
                 <div class="input">
@@ -76,6 +77,7 @@ $main = (array) ($filter->main ?? []);
                            min="<?php echo $minValue; ?>"
                            max="<?php echo $maxValue; ?>"
                            name="<?php echo $minName; ?>"
+                           data-filter-label="<?php echo htmlspecialchars($dimensionLabel, ENT_COMPAT, 'UTF-8'); ?>"
                            placeholder="<?php echo $minValue; ?>"
                            value="<?php echo $activeMin; ?>">
                     <label class="form-label input__hint" for="<?php echo $minName; ?>"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'); ?></label>
@@ -88,6 +90,7 @@ $main = (array) ($filter->main ?? []);
                            min="<?php echo $minValue; ?>"
                            max="<?php echo $maxValue; ?>"
                            name="<?php echo $maxName; ?>"
+                           data-filter-label="<?php echo htmlspecialchars($dimensionLabel, ENT_COMPAT, 'UTF-8'); ?>"
                            placeholder="<?php echo $maxValue; ?>"
                            value="<?php echo $activeMax; ?>">
                     <label class="form-label input__hint" for="<?php echo $maxName; ?>"><?php echo Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'); ?></label>

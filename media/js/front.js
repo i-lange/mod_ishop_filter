@@ -21,16 +21,22 @@ class IshopFilter {
     this.resetUrl = this.form.dataset.resetUrl || this.buildEndpoint("filter.reset");
     this.submitTemplate = this.form.dataset.submitTemplate || "";
     this.submitUnavailableText = this.form.dataset.submitUnavailableText || "";
+    this.filterFromText = (this.form.dataset.filterFromText || "From").toLowerCase();
+    this.filterToText = (this.form.dataset.filterToText || "To").toLowerCase();
     this.sefUrl = this.form.action || window.location.href;
     this.baseUrl = "";
     this.container =
       this.form.closest(".mod_ishop_filter") ||
       this.form.closest(".offcanvas") ||
       this.form.parentElement;
+    this.activeTagsContainer = null;
+    this.activeTags = [];
 
     this.updateSubmitText(this.getInitialProductCount());
     this.bindEvents();
     this.updateSelectedCounts();
+    this.activeTagsContainer = this.getAssociatedElements("[data-filter-active-tags]")[0] || null;
+    this.updateActiveTags();
   }
 
   bindEvents() {
@@ -47,12 +53,19 @@ class IshopFilter {
         if (this.isSelectedCountControl(input)) {
           this.updateSelectedCounts();
         }
+        this.updateActiveTags();
         this.debouncedSend();
       });
 
       if (input.type === "number" || input.type === "text") {
-        input.addEventListener("input", () => this.debouncedSend());
-        input.addEventListener("blur", () => this.roundNumberInput(input));
+        input.addEventListener("input", () => {
+          this.updateActiveTags();
+          this.debouncedSend();
+        });
+        input.addEventListener("blur", () => {
+          this.roundNumberInput(input);
+          this.updateActiveTags();
+        });
       }
     });
 
@@ -65,6 +78,18 @@ class IshopFilter {
       resetBtn.addEventListener("click", (event) => {
         event.preventDefault();
         this.reset();
+      });
+    });
+
+    this.getAssociatedElements("[data-filter-active-tags]").forEach((container) => {
+      container.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-filter-tag-index]");
+        if (!button || !container.contains(button)) {
+          return;
+        }
+
+        event.preventDefault();
+        this.removeActiveTag(this.toInteger(button.dataset.filterTagIndex));
       });
     });
 
@@ -375,6 +400,7 @@ class IshopFilter {
     }
 
     this.refreshRangeSliders();
+    this.updateActiveTags();
   }
 
   updateSubmitText(productCount) {
@@ -490,6 +516,190 @@ class IshopFilter {
       });
 
     return counts;
+  }
+
+  updateActiveTags() {
+    if (!this.activeTagsContainer) {
+      return;
+    }
+
+    this.activeTags = this.collectActiveTags();
+    this.activeTagsContainer.textContent = "";
+    this.activeTagsContainer.hidden = this.activeTags.length === 0;
+
+    this.activeTags.forEach((tag, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "filter-active-tag";
+      button.dataset.filterTagIndex = String(index);
+      button.setAttribute("aria-label", tag.label);
+
+      const label = document.createElement("span");
+      label.className = "filter-active-tag__label";
+      label.textContent = tag.label;
+
+      const icon = document.createElement("span");
+      icon.className = "filter-active-tag__remove";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "\u00d7";
+
+      button.append(label, icon);
+      this.activeTagsContainer.append(button);
+    });
+  }
+
+  collectActiveTags() {
+    return [
+      ...this.collectCheckboxTags(),
+      ...this.collectRangeTags(),
+    ];
+  }
+
+  collectCheckboxTags() {
+    const tags = [];
+
+    this.form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach((input) => {
+      if (!input.name || !input.checked || input.disabled || this.isButtonControl(input)) {
+        return;
+      }
+
+      const label = this.getControlLabel(input);
+      if (!label) {
+        return;
+      }
+
+      tags.push({
+        label,
+        controls: [input],
+      });
+    });
+
+    return tags;
+  }
+
+  collectRangeTags() {
+    const groups = new Map();
+
+    this.form.querySelectorAll('input[type="number"], input[type="text"]').forEach((input) => {
+      if (!input.name || input.disabled || this.isButtonControl(input)) {
+        return;
+      }
+
+      const value = this.roundValue(input.value);
+      if (value === null || value === "") {
+        return;
+      }
+
+      const rangePart = this.getRangePart(input.name);
+      if (!rangePart) {
+        return;
+      }
+
+      const group = groups.get(rangePart.key) || {
+        label: this.getRangeLabel(input),
+        minInput: null,
+        maxInput: null,
+        minValue: "",
+        maxValue: "",
+      };
+
+      if (rangePart.part === "min") {
+        group.minInput = input;
+        group.minValue = value;
+      } else {
+        group.maxInput = input;
+        group.maxValue = value;
+      }
+
+      if (!group.label) {
+        group.label = this.getRangeLabel(input);
+      }
+
+      groups.set(rangePart.key, group);
+    });
+
+    return Array.from(groups.values())
+      .filter((group) => group.label && (group.minValue !== "" || group.maxValue !== ""))
+      .map((group) => ({
+        label: this.formatRangeTagLabel(group),
+        controls: [group.minInput, group.maxInput].filter(Boolean),
+      }));
+  }
+
+  getRangePart(name) {
+    const directMatch = name.match(/^(min|max)_(.+)$/);
+    if (directMatch) {
+      return {
+        key: directMatch[2],
+        part: directMatch[1],
+      };
+    }
+
+    const fieldMatch = name.match(/^ishop_fields\[(\d+)]\[(min|max)]$/);
+    if (fieldMatch) {
+      return {
+        key: `field-${fieldMatch[1]}`,
+        part: fieldMatch[2],
+      };
+    }
+
+    return null;
+  }
+
+  getRangeLabel(input) {
+    if (input.dataset.filterLabel) {
+      return input.dataset.filterLabel.trim();
+    }
+
+    const range = input.closest(".range");
+    const title = range?.previousElementSibling;
+    return title ? title.textContent.replace(/:$/, "").trim() : "";
+  }
+
+  formatRangeTagLabel(group) {
+    if (group.minValue !== "" && group.maxValue !== "") {
+      return `${group.label} ${this.filterFromText} ${group.minValue} ${this.filterToText} ${group.maxValue}`;
+    }
+
+    if (group.minValue !== "") {
+      return `${group.label} ${this.filterFromText} ${group.minValue}`;
+    }
+
+    return `${group.label} ${this.filterToText} ${group.maxValue}`;
+  }
+
+  getControlLabel(input) {
+    const label =
+      input.closest("label") ||
+      this.form.querySelector(`label[for="${input.id}"]`);
+
+    return label ? label.textContent.trim() : "";
+  }
+
+  removeActiveTag(index) {
+    const tag = this.activeTags[index];
+    if (!tag) {
+      return;
+    }
+
+    tag.controls.forEach((control) => {
+      if (!control) {
+        return;
+      }
+
+      if (control.type === "checkbox" || control.type === "radio") {
+        control.checked = false;
+      } else {
+        control.value = "";
+      }
+
+      control.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    this.updateSelectedCounts();
+    this.updateActiveTags();
+    this.refreshRangeSliders();
+    this.debouncedSend();
   }
 
   isSelectedCountControl(control) {

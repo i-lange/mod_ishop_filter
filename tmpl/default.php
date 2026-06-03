@@ -10,7 +10,6 @@
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Uri\Uri;
 
 defined('_JEXEC') or die;
@@ -53,7 +52,6 @@ $resetUrl = $endpointRoot . 'reset&format=json';
 $filterTitle = Text::_('MOD_ISHOP_FILTER_MODULE_FILTERS');
 $closeText = Text::_('MOD_ISHOP_FILTER_CLOSE');
 $backText = Text::_('MOD_ISHOP_FILTER_BACK');
-$siteName = Text::_('TPL_ITHEME_SITENAME');
 $productCount = (int) ($filter->total ?? 0);
 $submitUnavailable = $productCount === 0;
 $submitText = $submitUnavailable
@@ -83,10 +81,6 @@ $getFieldAvailableValues = static function (array $availableOptions, int $fieldI
     return array_keys((array) ($fields[$fieldId]['values'] ?? []));
 };
 
-if ($siteName === 'TPL_ITHEME_SITENAME') {
-    $siteName = $app->get('sitename', Text::_('MOD_ISHOP_FILTER_MODULE_TITLE'));
-}
-
 // Массив дочерних панелей
 $subPanels = [];
 ?>
@@ -95,21 +89,22 @@ $subPanels = [];
      id="moduleFilter"
      aria-labelledby="moduleFilterLabel"
      data-offcanvas-panels>
-    <div class="offcanvas-header border-bottom">
-        <div class="offcanvas-title-wrap">
-            <?php
-            try {
-                echo LayoutHelper::render('itheme.logo', ['class' => 'offcanvas-logo', 'alt' => $siteName]);
-            } catch (\Throwable $e) {
-                // Layout is provided by tpl_itheme; keep the module usable without it.
-            }
-            ?>
-            <h3 class="offcanvas-title" id="moduleFilterLabel"><?php echo $filterTitle; ?></h3>
+    <div class="offcanvas-header border-bottom filter-header">
+        <div class="filter-header-main">
+            <h3 class="offcanvas-title filter-header-title" id="moduleFilterLabel"><?php echo $filterTitle; ?></h3>
+            <button class="btn btn-link filter-reset-all"
+                    type="button"
+                    form="<?php echo $formId; ?>"
+                    id="ishop-filter-reset-<?php echo (int) $module->id; ?>"
+                    data-filter-reset><?php echo Text::_('MOD_ISHOP_FILTER_MODULE_RESET_ALL'); ?></button>
+            <button type="button"
+                    class="btn-close filter-header-close"
+                    data-bs-dismiss="offcanvas"
+                    aria-label="<?php echo $closeText; ?>"></button>
         </div>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="<?php echo $closeText; ?>"></button>
+        <div class="filter-active-tags"
+             data-filter-active-tags
+             hidden></div>
     </div>
     <div class="offcanvas-body">
         <form class="menu-viewport"
@@ -124,7 +119,9 @@ $subPanels = [];
               data-preview-url="<?php echo htmlspecialchars($previewUrl, ENT_COMPAT, 'UTF-8'); ?>"
               data-reset-url="<?php echo htmlspecialchars($resetUrl, ENT_COMPAT, 'UTF-8'); ?>"
               data-submit-template="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT'), ENT_COMPAT, 'UTF-8'); ?>"
-              data-submit-unavailable-text="<?php echo htmlspecialchars($submitUnavailableText, ENT_COMPAT, 'UTF-8'); ?>">
+              data-submit-unavailable-text="<?php echo htmlspecialchars($submitUnavailableText, ENT_COMPAT, 'UTF-8'); ?>"
+              data-filter-from-text="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_BY_PRICE_FROM'), ENT_COMPAT, 'UTF-8'); ?>"
+              data-filter-to-text="<?php echo htmlspecialchars(Text::_('MOD_ISHOP_FILTER_BY_PRICE_TO'), ENT_COMPAT, 'UTF-8'); ?>">
             <div class="filter-loading-overlay" style="display: none;">
                 <div class="filter-loading-spinner">
                     <div class="spinner-border text-primary" role="status">
@@ -225,24 +222,17 @@ $subPanels = [];
         </form>
     </div>
     <div class="offcanvas-footer border-top">
-        <div class="filter-submit-wrap me-2">
-            <button class="btn btn-primary"
-                    type="submit"
-                    form="<?php echo $formId; ?>"
-                    data-filter-submit
-                    aria-describedby="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
-                    aria-disabled="<?php echo $submitUnavailable ? 'true' : 'false'; ?>"<?php echo $submitUnavailable ? ' disabled' : ''; ?>>
-                <span data-filter-submit-text><?php echo $submitText; ?></span>
-            </button>
-            <div class="filter-submit-hint"
-                 id="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
-                 data-filter-submit-hint
-                 <?php echo $submitUnavailable ? '' : 'hidden'; ?>><?php echo $submitUnavailableHint; ?></div>
-        </div>
-        <button class="btn btn-link"
-                type="button"
+        <button class="btn btn-primary w-100"
+                type="submit"
                 form="<?php echo $formId; ?>"
-                id="ishop-filter-reset-<?php echo (int) $module->id; ?>"
-                data-filter-reset><?php echo Text::_('MOD_ISHOP_FILTER_MODULE_RESET'); ?></button>
+                data-filter-submit
+                aria-describedby="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
+                aria-disabled="<?php echo $submitUnavailable ? 'true' : 'false'; ?>"<?php echo $submitUnavailable ? ' disabled' : ''; ?>>
+            <span data-filter-submit-text><?php echo $submitText; ?></span>
+        </button>
+        <div class="filter-submit-hint"
+             id="ishop-filter-submit-hint-<?php echo (int) $module->id; ?>"
+             data-filter-submit-hint
+                <?php echo $submitUnavailable ? '' : 'hidden'; ?>><?php echo $submitUnavailableHint; ?></div>
     </div>
 </div>
