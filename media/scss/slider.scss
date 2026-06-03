@@ -1,0 +1,100 @@
+/*!
+ * @package    mod_ishop_filter
+ * @author     Pavel Lange <pavel@ilange.ru>
+ * @link       https://github.com/i-lange/mod_ishop_filter
+ * @copyright  (C) 2026 Pavel Lange <https://ilange.ru>
+ * @license    GNU General Public License version 2 or later
+ */
+
+.range {
+  display: block;
+  margin: 0 0 0.5em;
+}
+
+.range-inputs {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0;
+
+  &::after {
+    position: absolute;
+    content: "";
+    left: 1em;
+    right: 1em;
+    bottom: 0;
+    height: 0.25em;
+    border-radius: 0.25em;
+    background: var(--gray-300, #dee2e6);
+  }
+
+  .input {
+    position: relative;
+    width: 50%;
+
+    input {
+      color: var(--primary, #0d6efd);
+
+      &:focus {
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+.range-min {
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.range-max {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.input__hint {
+  position: absolute;
+  display: inline-block;
+  text-transform: lowercase;
+  font-size: 0.75em;
+  line-height: 1;
+  font-weight: 600;
+  top: 1px;
+  left: 1px;
+  color: var(--gray-300, #dee2e6);
+  background: transparent;
+  padding: 0 0.25em;
+}
+
+.range-slider {
+  position: relative;
+  height: 0.25em;
+  margin: -0.25em 0.75em 0 -0.25em;
+  background-color: transparent;
+}
+
+.range-slider__line {
+  position: absolute;
+  height: 100%;
+  background-color: var(--primary, #0d6efd);
+}
+
+.range-slider__point {
+  position: absolute;
+  cursor: pointer;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1em;
+  height: 1em;
+  background-color: var(--primary, #0d6efd);
+  border-radius: 50%;
+}
+
+.range-slider__point--upper {
+  left: 0;
+}
+
+.range-slider__point--lower {
+  right: 0;
+}

@@ -58,6 +58,8 @@ class IshopFilter {
         this.reset();
       });
     });
+
+    this.refreshRangeSliders();
   }
 
   getAssociatedElements(selector) {
@@ -354,6 +356,8 @@ class IshopFilter {
         this.updateRangePair("min_weight", "max_weight", available.sizes.weight);
       }
     }
+
+    this.refreshRangeSliders();
   }
 
   updateSubmitText(productCount) {
@@ -491,6 +495,8 @@ class IshopFilter {
       maxInput.placeholder = max;
       maxInput.step = 1;
     }
+
+    this.refreshRangeSliders(minInput?.closest(".range") || maxInput?.closest(".range"));
   }
 
   updateGroupVisibility(selector) {
@@ -646,6 +652,12 @@ class IshopFilter {
     const overlay = this.form.querySelector(".filter-loading-overlay");
     if (overlay) {
       overlay.style.display = "none";
+    }
+  }
+
+  refreshRangeSliders(scope = this.form) {
+    if (window.IshopFilterSlider?.refresh) {
+      window.IshopFilterSlider.refresh(scope);
     }
   }
 }

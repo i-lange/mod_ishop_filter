@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const JS_ENTRY_FILES = [  
+  'slider.js',
   'front.js',
 ]
 

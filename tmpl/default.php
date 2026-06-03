@@ -33,16 +33,14 @@ if (empty($filter) || $filter->empty) {
 
 $wa->useScript('bootstrap.offcanvas');
 
-if ($wa->assetExists('script', 'tpl.offcanvas-slider')) {
-    $wa->useScript('tpl.offcanvas-slider');
-}
-
 if ($params->get('use_css', 1)) {
     $wa->useStyle('ishop_filter.front');
+    $wa->useStyle('ishop_filter.range');
 }
 
 if ($params->get('use_js', 1)) {
     $wa->useScript('ishop_filter.front');
+    $wa->useScript('ishop_filter.range');
 }
 
 $formId = 'i-filter-' . $module->id;

@@ -11,10 +11,24 @@
       "uri": "mod_ishop_filter/front.css"
     },
     {
+      "name": "ishop_filter.range",
+      "type": "style",
+      "uri": "mod_ishop_filter/slider.css"
+    },
+    {
+      "name": "ishop_filter.range",
+      "type": "script",
+      "uri": "mod_ishop_filter/slider.js",
+      "dependencies": ["core"],
+      "attributes": {
+        "defer": true
+      }
+    },
+    {
       "name": "ishop_filter.front",
       "type": "script",
       "uri": "mod_ishop_filter/front.js",
-      "dependencies": ["core"],
+      "dependencies": ["core", "ishop_filter.range"],
       "attributes": {
         "defer": true
       }
