@@ -49,13 +49,14 @@ $dimensions = [
         'max' => 'max_weight',
     ],
 ];
+$main = (array) ($filter->main ?? []);
 ?>
 <?php foreach ($dimensions as $dimensionKey => $dimension) : ?>
     <?php
     $minName = $dimension['min'];
     $maxName = $dimension['max'];
-    $baseMinValue = (int) round((float) $filter->main->$minName);
-    $baseMaxValue = (int) round((float) $filter->main->$maxName);
+    $baseMinValue = (int) round((float) ($main[$minName] ?? 0));
+    $baseMaxValue = (int) round((float) ($main[$maxName] ?? 0));
     $range = (array) ($filter->availableOptions['sizes'][$dimensionKey] ?? []);
     $minValue = isset($range['min']) ? (int) $range['min'] : $baseMinValue;
     $maxValue = isset($range['max']) ? (int) $range['max'] : $baseMaxValue;

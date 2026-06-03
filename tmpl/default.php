@@ -130,8 +130,15 @@ $subPanels = [];
                     <?php if ($params->get('show_prices', 0)) : ?>
                         <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_prices'); ?>
                     <?php endif; ?>
+                    <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_sizes'); ?>
+                    <?php if ($params->get('show_fields', 0) && count($filter->ishop_fields ?? []) > 0) : ?>
+                        <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_fields_range'); ?>
+                    <?php endif; ?>
                     <?php if ($params->get('show_sales', 0)) : ?>
                         <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_sales'); ?>
+                    <?php endif; ?>
+                    <?php if ($params->get('show_fields', 0) && count($filter->ishop_fields ?? []) > 0) : ?>
+                        <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_fields_switch'); ?>
                     <?php endif; ?>
                     <?php if ($params->get('show_warehouses', 0)) : ?>
                         <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_warehouses'); ?>
@@ -139,9 +146,8 @@ $subPanels = [];
                     <?php if ($params->get('show_brand', 0) && count($filter->manufacturers ?? []) > 1) : ?>
                         <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_brands'); ?>
                     <?php endif; ?>
-                    <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_sizes'); ?>
                     <?php if ($params->get('show_fields', 0) && count($filter->ishop_fields ?? []) > 0) : ?>
-                        <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_fields'); ?>
+                        <?php require ModuleHelper::getLayoutPath('mod_ishop_filter', $params->get('layout', 'default') . '_fields_list'); ?>
                     <?php endif; ?>
                 </nav>
             </section>

@@ -24,8 +24,9 @@ defined('_JEXEC') or die;
  */
 
 $priceRange = (array) ($filter->availableOptions['price_range'] ?? []);
-$minPrice = isset($priceRange['min']) ? (int) $priceRange['min'] : (int) round((float) $filter->main->min_price);
-$maxPrice = isset($priceRange['max']) ? (int) $priceRange['max'] : (int) round((float) $filter->main->max_price);
+$main = (array) ($filter->main ?? []);
+$minPrice = isset($priceRange['min']) ? (int) $priceRange['min'] : (int) round((float) ($main['min_price'] ?? 0));
+$maxPrice = isset($priceRange['max']) ? (int) $priceRange['max'] : (int) round((float) ($main['max_price'] ?? 0));
 $activeMinPrice = (($filter->active['min_price'] ?? 0) > 0) ? (int) round((float) $filter->active['min_price']) : '';
 $activeMaxPrice = (($filter->active['max_price'] ?? 0) > 0) ? (int) round((float) $filter->active['max_price']) : '';
 ?>
