@@ -57,6 +57,27 @@ $closeText = Text::_('MOD_ISHOP_FILTER_CLOSE');
 $backText = Text::_('MOD_ISHOP_FILTER_BACK');
 $siteName = Text::_('TPL_ITHEME_SITENAME');
 $submitText = Text::sprintf('MOD_ISHOP_FILTER_MODULE_SUBMIT_COUNT', (int) ($filter->total ?? 0));
+$availableOptions = (array) ($filter->availableOptions ?? []);
+$isAvailableOption = static function ($availableIds, int $valueId, bool $checked): bool {
+    if ($checked || $availableIds === null) {
+        return true;
+    }
+
+    return in_array($valueId, array_map('intval', (array) $availableIds), true);
+};
+$getFieldAvailableValues = static function (array $availableOptions, int $fieldId): ?array {
+    $fields = (array) ($availableOptions['ishop_fields'] ?? []);
+
+    if (empty($fields)) {
+        return null;
+    }
+
+    if (!isset($fields[$fieldId]) || ($fields[$fieldId]['type'] ?? '') !== 'list') {
+        return [];
+    }
+
+    return array_keys((array) ($fields[$fieldId]['values'] ?? []));
+};
 
 if ($siteName === 'TPL_ITHEME_SITENAME') {
     $siteName = $app->get('sitename', Text::_('MOD_ISHOP_FILTER_MODULE_TITLE'));
@@ -143,18 +164,20 @@ $subPanels = [];
                             $variantTitle = is_array($variant) ? (string) ($variant['title'] ?? '') : (string) ($variant->title ?? '');
                             $activeValues = array_map('intval', (array) ($filter->active[$id] ?? []));
                             $checked = '';
+                            $checkedBool = in_array($variantId, $activeValues, true);
+                            $enabled = $isAvailableOption($availableOptions[$id] ?? null, $variantId, $checkedBool);
 
-                            if (in_array($variantId, $activeValues, true)) {
+                            if ($checkedBool) {
                                 $checked = 'checked';
                             }
                             ?>
-                            <div class="form-check">
+                            <div class="form-check<?php echo $enabled ? '' : ' filter-option-disabled'; ?>">
                                 <input class="form-check-input"
                                        id="<?php echo $id, '-', $variantId; ?>"
                                        type="checkbox"
                                        name="<?php echo $id; ?>[]"
-                                       value="<?php echo $variantId; ?>" <?php echo $checked; ?>>
-                                <label class="form-check-label"
+                                       value="<?php echo $variantId; ?>" <?php echo $checked; ?><?php echo $enabled ? '' : ' disabled'; ?>>
+                                <label class="form-check-label<?php echo $enabled ? '' : ' disabled'; ?>"
                                        for="<?php echo $id, '-', $variantId; ?>"><?php echo htmlspecialchars($variantTitle, ENT_COMPAT, 'UTF-8'); ?></label>
                             </div>
                         <?php endforeach; ?>
@@ -163,19 +186,23 @@ $subPanels = [];
                         <?php foreach ($panel['values'] as $value_id => $value) : ?>
                             <?php
                             $checked = '';
+                            $valueId = (int) $value_id;
+                            $fieldId = (int) $id;
+                            $checkedBool = isset($filter->active['fields'][$id]) && in_array($value_id, $filter->active['fields'][$id]);
+                            $enabled = $isAvailableOption($getFieldAvailableValues($availableOptions, $fieldId), $valueId, $checkedBool);
 
-                            if (isset($filter->active['fields'][$id]) && in_array($value_id, $filter->active['fields'][$id])) {
+                            if ($checkedBool) {
                                 $checked = 'checked';
                             }
                             ?>
-                            <div class="form-check">
+                            <div class="form-check<?php echo $enabled ? '' : ' filter-option-disabled'; ?>">
                                 <input class="form-check-input"
-                                       id="value-<?php echo (int) $id . '-' . (int) $value_id; ?>"
+                                       id="value-<?php echo $fieldId . '-' . $valueId; ?>"
                                        type="checkbox"
-                                       name="ishop_fields[<?php echo (int) $id; ?>][]"
-                                       value="<?php echo (int) $value_id; ?>" <?php echo $checked; ?>>
-                                <label class="form-check-label"
-                                       for="value-<?php echo (int) $id . '-' . (int) $value_id; ?>">
+                                       name="ishop_fields[<?php echo $fieldId; ?>][]"
+                                       value="<?php echo $valueId; ?>" <?php echo $checked; ?><?php echo $enabled ? '' : ' disabled'; ?>>
+                                <label class="form-check-label<?php echo $enabled ? '' : ' disabled'; ?>"
+                                       for="value-<?php echo $fieldId . '-' . $valueId; ?>">
                                     <?php echo htmlspecialchars((string) $value, ENT_COMPAT, 'UTF-8'); ?>
                                 </label>
                             </div>

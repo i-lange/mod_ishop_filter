@@ -50,15 +50,18 @@ $dimensions = [
     ],
 ];
 ?>
-<?php foreach ($dimensions as $dimension) : ?>
+<?php foreach ($dimensions as $dimensionKey => $dimension) : ?>
     <?php
     $minName = $dimension['min'];
     $maxName = $dimension['max'];
-    $minValue = (int) round((float) $filter->main->$minName);
-    $maxValue = (int) round((float) $filter->main->$maxName);
+    $baseMinValue = (int) round((float) $filter->main->$minName);
+    $baseMaxValue = (int) round((float) $filter->main->$maxName);
+    $range = (array) ($filter->availableOptions['sizes'][$dimensionKey] ?? []);
+    $minValue = isset($range['min']) ? (int) $range['min'] : $baseMinValue;
+    $maxValue = isset($range['max']) ? (int) $range['max'] : $baseMaxValue;
     $activeMin = (($filter->active[$minName] ?? 0) > 0) ? (int) round((float) $filter->active[$minName]) : '';
     $activeMax = (($filter->active[$maxName] ?? 0) > 0) ? (int) round((float) $filter->active[$maxName]) : '';
-    $show = $params->get($dimension['enabled'], 0) && ($minValue > 0 || $maxValue > 0) && $minValue !== $maxValue;
+    $show = $params->get($dimension['enabled'], 0) && ($baseMinValue > 0 || $baseMaxValue > 0) && $baseMinValue !== $baseMaxValue;
     ?>
     <?php if ($show) : ?>
         <span><?php echo Text::_($dimension['label']); ?></span>

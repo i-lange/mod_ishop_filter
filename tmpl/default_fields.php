@@ -33,8 +33,9 @@ defined('_JEXEC') or die;
             continue;
         }
 
-        $min = (int) round((float) $min, 0, PHP_ROUND_HALF_DOWN);
-        $max = (int) round((float) $max, 0, PHP_ROUND_HALF_UP);
+        $range = (array) ($filter->availableOptions['ishop_fields'][$field->id] ?? []);
+        $min = isset($range['min']) ? (int) $range['min'] : (int) round((float) $min, 0, PHP_ROUND_HALF_DOWN);
+        $max = isset($range['max']) ? (int) $range['max'] : (int) round((float) $max, 0, PHP_ROUND_HALF_UP);
 
         if (isset($filter->active['fields'][$field->id]['min']) && is_numeric($filter->active['fields'][$field->id]['min'])) {
             $tmpMin = (int) round((float) $filter->active['fields'][$field->id]['min']);
@@ -88,20 +89,23 @@ defined('_JEXEC') or die;
     <?php elseif ($fieldType === 2) : // Да или Нет ?>
         <?php
         $checked = '';
-        if (isset($filter->active['fields'][$field->id]) && (int) $filter->active['fields'][$field->id] === 1) {
+        $checkedBool = isset($filter->active['fields'][$field->id]) && (int) $filter->active['fields'][$field->id] === 1;
+        $enabled = $checkedBool || isset($filter->availableOptions['ishop_fields'][$field->id]);
+
+        if ($checkedBool) {
             $checked = 'checked';
         }
         ?>
         <div class="nav-link">
             <input type="hidden" name="ishop_fields[<?php echo (int) $field->id; ?>]" value="0">
-            <div class="form-check form-switch">
+            <div class="form-check form-switch<?php echo $enabled ? '' : ' filter-option-disabled'; ?>">
                 <input class="form-check-input"
                        type="checkbox"
                        role="switch"
                        id="ishop_fields_<?php echo (int) $field->id; ?>_bool"
                        name="ishop_fields[<?php echo (int) $field->id; ?>]"
-                       value="1" <?php echo $checked; ?>>
-                <label class="form-check-label" for="ishop_fields_<?php echo (int) $field->id; ?>_bool"><?php echo htmlspecialchars((string) $field->title, ENT_COMPAT, 'UTF-8'); ?></label>
+                       value="1" <?php echo $checked; ?><?php echo $enabled ? '' : ' disabled'; ?>>
+                <label class="form-check-label<?php echo $enabled ? '' : ' disabled'; ?>" for="ishop_fields_<?php echo (int) $field->id; ?>_bool"><?php echo htmlspecialchars((string) $field->title, ENT_COMPAT, 'UTF-8'); ?></label>
             </div>
         </div>
     <?php else : // Строковые из списка ?>

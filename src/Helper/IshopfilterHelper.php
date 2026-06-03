@@ -9,6 +9,8 @@
 
 namespace Ilange\Module\Ishopfilter\Site\Helper;
 
+use Ilange\Component\Ishop\Site\Service\FilterAvailabilityService;
+use Ilange\Component\Ishop\Site\Service\FilterRules;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
@@ -49,8 +51,50 @@ class IshopfilterHelper
 			->getMVCFactory()
 			->createModel('Category', 'Site');
 
-		return $categoryModel->getFilterObject();
+		$filter = $categoryModel->getFilterObject();
+        $categoryId = $input->getInt('id', 0) ?: (int) $categoryModel->getState('category.id', 0);
+
+        if (!empty($filter) && empty($filter->empty) && $categoryId > 0) {
+            $itemId = $input->getInt('Itemid', 0);
+            $filters = self::getActiveFilters($filter);
+            $availabilityService = new FilterAvailabilityService();
+
+            $filter->total = count($availabilityService->getFilteredProductIds($categoryId, $itemId, $filters));
+            $filter->availableOptions = $availabilityService->getAvailableOptions($categoryId, $itemId, $filters);
+        }
+
+		return $filter;
 	}
+
+    /**
+     * Возвращает нормализованные активные значения фильтра из объекта CategoryModel.
+     *
+     * @param   object  $filter  Объект фильтра категории
+     *
+     * @return array
+     * @since 1.0.0
+     */
+    private static function getActiveFilters(object $filter): array
+    {
+        $active = (array) ($filter->active ?? []);
+
+        return FilterRules::normalizeFilterInput([
+            'min_price'     => (int) ($active['min_price'] ?? 0),
+            'max_price'     => (int) ($active['max_price'] ?? 0),
+            'good_price'    => (int) ($active['good_price'] ?? 0),
+            'min_width'     => (int) ($active['min_width'] ?? 0),
+            'max_width'     => (int) ($active['max_width'] ?? 0),
+            'min_height'    => (int) ($active['min_height'] ?? 0),
+            'max_height'    => (int) ($active['max_height'] ?? 0),
+            'min_depth'     => (int) ($active['min_depth'] ?? 0),
+            'max_depth'     => (int) ($active['max_depth'] ?? 0),
+            'min_weight'    => (int) ($active['min_weight'] ?? 0),
+            'max_weight'    => (int) ($active['max_weight'] ?? 0),
+            'manufacturers' => (array) ($active['manufacturers'] ?? []),
+            'warehouses'    => (array) ($active['warehouses'] ?? []),
+            'ishop_fields'  => (array) ($active['fields'] ?? []),
+        ]);
+    }
 
     /**
      * Метод принимающий Ajax запрос
@@ -102,66 +146,10 @@ class IshopfilterHelper
             $app->sendJsonMessage(false, Text::_('MOD_ISHOP_FILTER_NO_DATA'), true);
         }
 
-        $totalProducts = $filterObject->total ?? 0;
-
-        $availableOptions = [
-            'manufacturers' => isset($filterObject->manufacturers) ? array_column((array) $filterObject->manufacturers, 'id') : [],
-            'warehouses'    => isset($filterObject->warehouses) ? array_map(fn($w) => $w->id ?? null, (array) $filterObject->warehouses) : [],
-            'ishop_fields'  => [],
-            'price_range'   => [
-                'min' => $filterObject->main->min_price ?? 0,
-                'max' => $filterObject->main->max_price ?? 0,
-            ],
-            'sizes'         => [
-                'width'  => [
-                    'min' => $filterObject->main->min_width ?? 0,
-                    'max' => $filterObject->main->max_width ?? 0,
-                ],
-                'height' => [
-                    'min' => $filterObject->main->min_height ?? 0,
-                    'max' => $filterObject->main->max_height ?? 0,
-                ],
-                'depth'  => [
-                    'min' => $filterObject->main->min_depth ?? 0,
-                    'max' => $filterObject->main->max_depth ?? 0,
-                ],
-                'weight' => [
-                    'min' => $filterObject->main->min_weight ?? 0,
-                    'max' => $filterObject->main->max_weight ?? 0,
-                ],
-            ],
-        ];
-
-        if (!empty($filterObject->ishop_fields)) {
-            foreach ($filterObject->ishop_fields as $field) {
-                $fieldId = $field->id ?? null;
-                if ($fieldId === null) {
-                    continue;
-                }
-
-                $fieldType = $field->type ?? 0;
-
-                if ($fieldType === 0) {
-                    $values = explode(',', $field->values ?? '0,0');
-                    $availableOptions['ishop_fields'][$fieldId] = [
-                        'type' => 'range',
-                        'min'  => (float) ($values[0] ?? 0),
-                        'max'  => (float) ($values[1] ?? 0),
-                    ];
-                } elseif ($fieldType === 1) {
-                    $values = explode('||', $field->values ?? '');
-                    $valuesId = explode('||', $field->values_id ?? '');
-                    $availableOptions['ishop_fields'][$fieldId] = [
-                        'type'   => 'list',
-                        'values' => array_combine($valuesId, $values),
-                    ];
-                } elseif ($fieldType === 2) {
-                    $availableOptions['ishop_fields'][$fieldId] = [
-                        'type' => 'boolean',
-                    ];
-                }
-            }
-        }
+        $availabilityService = new FilterAvailabilityService();
+        $filters = FilterRules::normalizeFilterInput($filterData);
+        $totalProducts = count($availabilityService->getFilteredProductIds($categoryId, $input->getInt('Itemid', 0), $filters));
+        $availableOptions = $availabilityService->getAvailableOptions($categoryId, $input->getInt('Itemid', 0), $filters);
 
         $response = [
             'success'        => true,
