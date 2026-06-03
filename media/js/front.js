@@ -25,6 +25,7 @@ class IshopFilter {
 
     this.updateSubmitText(this.getInitialProductCount());
     this.bindEvents();
+    this.updateSelectedCounts();
   }
 
   bindEvents() {
@@ -37,6 +38,9 @@ class IshopFilter {
       input.addEventListener("change", () => {
         if (input.type === "number") {
           this.roundNumberInput(input);
+        }
+        if (this.isSelectedCountControl(input)) {
+          this.updateSelectedCounts();
         }
         this.debouncedSend();
       });
@@ -153,11 +157,7 @@ class IshopFilter {
       return false;
     }
 
-    if ((control.type === "checkbox" || control.type === "radio") && !control.checked) {
-      return false;
-    }
-
-    return true;
+    return !((control.type === "checkbox" || control.type === "radio") && !control.checked);
   }
 
   isButtonControl(control) {
@@ -426,6 +426,41 @@ class IshopFilter {
     });
 
     this.disableMissingFieldOptions(returnedFieldIds);
+  }
+
+  updateSelectedCounts() {
+    const selectedCounts = this.collectSelectedCounts();
+    this.form.querySelectorAll("[data-selected-count]").forEach((counter) => {
+      const fieldId = counter.dataset.fieldId;
+      const count = selectedCounts.get(String(fieldId)) || 0;
+
+      counter.textContent = String(count);
+      counter.dataset.count = String(count);
+      counter.hidden = count === 0;
+      counter.classList.toggle("is-empty", count === 0);
+    });
+  }
+
+  collectSelectedCounts() {
+    const counts = new Map();
+
+    this.form
+      .querySelectorAll('input[name^="ishop_fields["][name$="[]"]')
+      .forEach((input) => {
+        const match = input.name.match(/^ishop_fields\[(\d+)]\[]$/);
+        if (!match || !input.checked) {
+          return;
+        }
+
+        const fieldId = match[1];
+        counts.set(fieldId, (counts.get(fieldId) || 0) + 1);
+      });
+
+    return counts;
+  }
+
+  isSelectedCountControl(control) {
+    return control.type === "checkbox" && /^ishop_fields\[\d+]\[]$/.test(control.name || "");
   }
 
   updateBooleanField(fieldId, available) {

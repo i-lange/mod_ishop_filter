@@ -119,11 +119,22 @@ defined('_JEXEC') or die;
             continue;
         }
 
+        $selectedValueIds = array_map('intval', (array) ($filter->active['fields'][$field->id] ?? []));
+        $selectedCount = count($selectedValueIds);
+
         // Добавляем панель с выбором значений характеристики
         $subPanels[$field->id]['title'] = (string) $field->title;
         $subPanels[$field->id]['alias'] = (string) (($field->alias ?? '') ?: 'field-' . $field->id);
         $subPanels[$field->id]['values'] = $values;
         ?>
-        <span class="nav-link separator" data-panel-target="off-panel-<?php echo htmlspecialchars($subPanels[$field->id]['alias'], ENT_COMPAT, 'UTF-8'); ?>"><?php echo htmlspecialchars((string) $field->title, ENT_COMPAT, 'UTF-8'); ?></span>
+        <span class="nav-link separator"
+              data-panel-target="off-panel-<?php echo htmlspecialchars($subPanels[$field->id]['alias'], ENT_COMPAT, 'UTF-8'); ?>">
+            <span class="filter-panel-title"><?php echo htmlspecialchars((string) $field->title, ENT_COMPAT, 'UTF-8'); ?></span>
+            <span class="filter-selected-count<?php echo $selectedCount > 0 ? '' : ' is-empty'; ?>"
+                  data-field-id="<?php echo (int) $field->id; ?>"
+                  data-selected-count
+                  data-count="<?php echo $selectedCount; ?>"
+                  <?php echo $selectedCount > 0 ? '' : 'hidden'; ?>><?php echo $selectedCount; ?></span>
+        </span>
     <?php endif; ?>
 <?php endforeach; ?>
