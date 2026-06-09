@@ -4,7 +4,7 @@
 
 `mod_ishop_filter` - устанавливаемый модуль Joomla 6 для фильтрации товаров в категориях `com_ishop`. Модуль показывает форму фильтра, отправляет выбранные параметры в JSON endpoints компонента и перенаправляет пользователя на канонический ЧПУ URL результата фильтрации.
 
-Модуль не является самостоятельным сайтом Joomla и работает только внутри Joomla application context вместе с `com_ishop`.
+Модуль не является самостоятельным сайтом Joomla и работает только внутри Joomla application context вместе с `com_ishop`. Начальное состояние фильтра также берется из `com_ishop`: helper модуля загружает `CategoryModel`, `FilterRules` и `FilterAvailabilityService` компонента.
 
 ## Связанные проекты и расширения
 
@@ -17,11 +17,14 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 
 Связанные расширения в `/mnt/c/OSPanel/home/`:
 
-- `com_ishop` - компонент интернет-магазина. Для задач по фильтру почти всегда нужно смотреть его вместе с модулем.
+- `com_ishop` - компонент интернет-магазина и основной runtime dependency фильтра. Для задач по фильтру почти всегда нужно смотреть его вместе с модулем: `CategoryModel` строит объект фильтра, `FilterController` обслуживает `filter.preview`/`filter.reset`, `FilterRules` нормализует входные поля, `FilterAvailabilityService` считает доступность значений и количество товаров.
 - `mod_ishop_filter` - текущий модуль фильтра товаров.
-- `mod_ishop_cart`, `mod_ishop_compare`, `mod_ishop_zone` - связанные клиентские модули.
-- `com_ishopintegro`, `plg_ishopfinder`, `plg_ishopintegrocron` - интеграции, поиск и cron.
-- `tpl_itheme`, `plg_ithemecsscompiler` - клиентский шаблон и компиляция его стилей.
+- `mod_ishop_cart`, `mod_ishop_compare`, `mod_ishop_zone` - связанные клиентские модули на тех же страницах магазина. После изменений в верстке, JS-событиях, Bootstrap/offcanvas или общих состояниях страницы проверяйте, что они не конфликтуют с фильтром.
+- `com_ishopintegro`, `plg_ishopintegrocron` - интеграции и cron, которые могут менять товары, остатки, цены, производителей, характеристики и денормализованные таблицы фильтра.
+- `plg_ishopfinder` - поиск по товарам; проверяйте при изменениях SEO URL, формы фильтра, query-параметров и логики доступности товаров.
+- `tpl_itheme`, `plg_ithemecsscompiler` - клиентский шаблон и компиляция его стилей. Визуальные изменения фильтра проверяйте в контексте шаблона, особенно offcanvas, Bootstrap 5.3, состояния focus/disabled и адаптивность.
+
+Если меняете контракт формы, AJAX payload, SEO-сегменты фильтра, пагинацию, сортировку, расчет количества товаров или доступность опций, проверяйте модуль синхронно с `com_ishop`. Изолированная правка только в модуле обычно недостаточна.
 
 ## Официальный контекст Joomla 6
 
@@ -43,17 +46,22 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 ## Структура проекта
 
 - `mod_ishop_filter.xml` - манифест Joomla-модуля. Архив собирается как `mod_ishop_filter-{version}.zip`.
+- `package.json` - npm metadata, scripts и версия, из которой `pack.mjs` берет имя архива.
 - `script.php` - install/update script модуля.
 - `services/provider.php` - DI/service provider модуля.
 - `src/Dispatcher/Dispatcher.php` - dispatcher, передает данные в layout.
 - `src/Helper/IshopfilterHelper.php` - подготовка начального объекта фильтра через `com_ishop`; старый `getAjax()` может оставаться для совместимости, но новый основной AJAX идет в `com_ishop`.
 - `tmpl/default.php` - основная форма фильтра, `data-category-id`, `data-item-id`, URL endpoints, кнопки submit/reset.
-- `tmpl/default_prices.php`, `default_sales.php`, `default_warehouses.php`, `default_brands.php`, `default_fields.php`, `default_sizes.php` - части формы фильтра.
-- `media/js/front.js` - исходный JS фильтра.
-- `media/js/front.min.js`, `media/js/front.min.js.gz` - сгенерированные JS-ассеты, не править вручную.
-- `media/scss/front.scss` - исходные стили.
+- `tmpl/default_prices.php`, `default_sales.php`, `default_warehouses.php`, `default_brands.php`, `default_sizes.php` - части формы фильтра.
+- `tmpl/default_fields.php`, `default_fields_range.php`, `default_fields_switch.php`, `default_fields_list.php` - части характеристик фильтра.
+- `media/js/front.js` - исходный JS фильтра, AJAX-preview/reset, submit redirect, active tags и доступность опций.
+- `media/js/slider.js` - исходный JS кастомного range slider для цен, размеров, веса и числовых характеристик.
+- `media/js/*.min.js`, `*.min.js.gz` - сгенерированные JS-ассеты, не править вручную.
+- `media/scss/front.scss`, `media/scss/slider.scss` - исходные стили.
 - `media/css/*.css`, `*.min.css`, `*.gz` - сгенерированные CSS-ассеты, не править вручную.
-- `media/joomla.asset.json` - декларации Joomla Web Asset Manager.
+- `media/joomla.asset.json` - декларации Joomla Web Asset Manager для `ishop_filter.front` и `ishop_filter.range`.
+- `build.mjs`, `vite.config.js.mts`, `vite.config.css.mts` - сборка CSS/JS через Vite.
+- `pack.mjs` - сборка установочного архива `mod_ishop_filter-{package.version}.zip`.
 - `language/en-GB/*`, `language/ru-RU/*` - языковые файлы. Новые ключи добавлять в обе локали.
 
 ## Интеграция фильтра с com_ishop
@@ -90,6 +98,7 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 - `pnpm watch:css` - наблюдать CSS-сборку.
 - `pnpm test` - сейчас заглушка `No automated tests yet`.
 - `pnpm zip` - `pnpm build` и создание установочного архива `mod_ishop_filter-{version}.zip`.
+- Имя архива в `pnpm zip` строится из `package.json` через `pack.mjs`.
 
 Если обычный `node`/`pnpm` не найден в PATH, в этом окружении часто доступен Node.js по `/home/pavel/.nvm/versions/node/v24.14.1/bin/node`; для pnpm может потребоваться PATH с этой директорией первым.
 
@@ -98,6 +107,7 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 - Сначала меняйте исходники: SCSS в `media/scss`, обычные JS entrypoints в `media/js`, PHP в `src` и `tmpl`.
 - Не правьте вручную `.min.css`, `.min.js`, `.gz`, если изменение должно генерироваться сборкой.
 - После изменения SCSS/JS запускайте соответствующую сборку и включайте сгенерированные assets, если нужен installable package.
+- После изменений в проекте синхронно обновляйте версию расширения в трех местах: `package.json`, `<version>` в `mod_ishop_filter.xml` и `version` в `media/joomla.asset.json`. Эти значения не должны расходиться: `package.json` задает имя архива, XML-манифест задает версию для Joomla Installer/updates, asset-декларация задает версию набора Web Asset Manager.
 - `vite.config.css.mts` использует `emptyOutDir: true` для `media/css`; не держите там ручные файлы, которые не должны удаляться сборкой.
 - В PHP-файлах сохраняйте `defined('_JEXEC') or die;`, namespaced Joomla API (`Factory`, `HTMLHelper`, `Text`, `ModuleHelper`, `Uri`) и существующий стиль проекта.
 - Экранируйте вывод: `htmlspecialchars()`, `Text::_()`, явные приведения типов для данных из params/input/model.
@@ -119,6 +129,7 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 - `pnpm build` или более узко `pnpm build:js`/`pnpm build:css`, если менялись только конкретные ассеты.
 - `pnpm test`.
 - `pnpm zip`, если нужен installable package.
+- Проверить, что версии совпадают в `package.json`, `mod_ishop_filter.xml` и `media/joomla.asset.json`, а имя архива соответствует этой версии.
 
 Функциональная проверка в Joomla 6 на `https://magazin-gefest-new.local`:
 
