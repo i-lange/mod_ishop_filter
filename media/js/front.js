@@ -6,7 +6,9 @@
  * @license    GNU General Public License version 2 or later
  */
 
-class IshopFilter {
+export const FRONT_ENTRY_MARKER = "mod_ishop_filter.front";
+
+export class IshopFilter {
   constructor(formId) {
     this.form = document.querySelector(`form[name="ishop_filter"]#${formId}`);
     if (!this.form) {
@@ -940,14 +942,31 @@ class IshopFilter {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const forms = document.querySelectorAll('form[name="ishop_filter"]');
-  window.iFilters = [];
+export function initIshopFilters(root = globalThis.document) {
+  // Инициализируем только переданный DOM scope, чтобы импорт в тестах не имел побочных эффектов.
+  if (!root?.querySelectorAll) {
+    return [];
+  }
+
+  const forms = root.querySelectorAll('form[name="ishop_filter"]');
+  const filters = [];
 
   forms.forEach((form) => {
     const id = form.id;
     if (id) {
-      window.iFilters.push(new IshopFilter(id));
+      filters.push(new IshopFilter(id));
     }
   });
-});
+
+  if (root === globalThis.document && typeof window !== "undefined") {
+    window.iFilters = filters;
+  }
+
+  return filters;
+}
+
+if (typeof window !== "undefined") {
+  // Сохраняем глобальный доступ для старых интеграций и запускаем прежнюю автоинициализацию.
+  window.IshopFilter = IshopFilter;
+  document.addEventListener("DOMContentLoaded", () => initIshopFilters(document));
+}

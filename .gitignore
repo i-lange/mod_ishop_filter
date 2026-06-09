@@ -3,6 +3,9 @@
 /.idea
 /docs
 /node_modules
+/.phpunit.cache
+/coverage
+/vendor
 opencode.json
 pnpm-lock.yaml
 pnpm-workspace.yaml

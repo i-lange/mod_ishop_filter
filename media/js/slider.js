@@ -6,7 +6,9 @@
  * @license    GNU General Public License version 2 or later
  */
 
-class IshopFilterSliderManager {
+export const SLIDER_ENTRY_MARKER = "mod_ishop_filter.slider";
+
+export class IshopFilterSliderManager {
   constructor() {
     this.sliders = new Map();
   }
@@ -241,8 +243,25 @@ class IshopFilterSliderManager {
   }
 }
 
-window.IshopFilterSlider = window.IshopFilterSlider || new IshopFilterSliderManager();
+if (typeof window !== "undefined") {
+  // Глобальный менеджер остается тем же API, который использует front.js и существующая разметка.
+  window.IshopFilterSlider = window.IshopFilterSlider || new IshopFilterSliderManager();
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.IshopFilterSlider.init(document);
-});
+export function initIshopFilterSliders(root = globalThis.document) {
+  // Функция нужна тестам и повторной инициализации отдельных DOM-фрагментов.
+  if (!root || typeof window === "undefined") {
+    return null;
+  }
+
+  window.IshopFilterSlider.init(root);
+
+  return window.IshopFilterSlider;
+}
+
+if (typeof document !== "undefined") {
+  // Сохраняем прежнее поведение entrypoint при загрузке страницы.
+  document.addEventListener("DOMContentLoaded", () => {
+    initIshopFilterSliders(document);
+  });
+}

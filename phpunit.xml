@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Конфигурация отделяет автономные проверки от настоящей установки Joomla. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd"
+         bootstrap="tests/php/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/php/Unit</directory>
+        </testsuite>
+        <testsuite name="layout">
+            <directory>tests/php/Layout</directory>
+        </testsuite>
+        <testsuite name="contract">
+            <directory>tests/php/Contract</directory>
+        </testsuite>
+    </testsuites>
+
+    <source restrictNotices="true" restrictWarnings="true">
+        <include>
+            <directory suffix=".php">src</directory>
+            <directory suffix=".php">services</directory>
+            <directory suffix=".php">tmpl</directory>
+            <file>script.php</file>
+        </include>
+    </source>
+
+    <!-- Coverage запускается отдельной командой, чтобы обычный suite не требовал Xdebug. -->
+    <coverage includeUncoveredFiles="true" pathCoverage="false"/>
+</phpunit>
