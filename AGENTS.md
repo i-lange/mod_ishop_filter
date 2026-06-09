@@ -50,7 +50,7 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 - `script.php` - install/update script модуля.
 - `services/provider.php` - DI/service provider модуля.
 - `src/Dispatcher/Dispatcher.php` - dispatcher, передает данные в layout.
-- `src/Helper/IshopfilterHelper.php` - подготовка начального объекта фильтра через `com_ishop`; старый `getAjax()` может оставаться для совместимости, но новый основной AJAX идет в `com_ishop`.
+- `src/Helper/IshopfilterHelper.php` - подготовка начального объекта фильтра через `com_ishop`; AJAX preview/reset обслуживаются endpoints компонента `com_ishop`.
 - `tmpl/default.php` - основная форма фильтра, `data-category-id`, `data-item-id`, URL endpoints, кнопки submit/reset.
 - `tmpl/default_prices.php`, `default_sales.php`, `default_warehouses.php`, `default_brands.php`, `default_sizes.php` - части формы фильтра.
 - `tmpl/default_fields.php`, `default_fields_range.php`, `default_fields_switch.php`, `default_fields_list.php` - части характеристик фильтра.
@@ -144,7 +144,7 @@ Production-ready сайт для проверки: `magazin-gefest-new.local`.
 
 ## Ограничения и известные состояния
 
-- Автоматических тестов пока нет; `pnpm test` является заглушкой.
+- Автономные PHP/JS-тесты есть; `pnpm test` запускает PHPUnit и Vitest.
 - Это только модуль Joomla, поэтому PHP нельзя полноценно запускать вне Joomla application context.
 - Основной фильтр зависит от `com_ishop` и его денормализованных таблиц `#__ishop_filter_cat_{categoryId}`.
-- Устаревший `IshopfilterHelper::getAjax()` не является каноническим путем нового фильтра; новые доработки делайте через endpoints `com_ishop`.
+- Старый AJAX через helper модуля удален; новые доработки делайте через endpoints `com_ishop`.

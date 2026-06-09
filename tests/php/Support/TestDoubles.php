@@ -5,17 +5,6 @@ declare(strict_types=1);
 namespace Tests\Php\Support;
 
 /**
- * Исключение завершает fake JSON response так же, как Joomla завершает request.
- */
-final class JsonResponseSent extends \RuntimeException
-{
-    public function __construct(public bool $success, public mixed $data, public bool $error = false)
-    {
-        parent::__construct('Fake JSON response sent.');
-    }
-}
-
-/**
  * Параметры модуля с тем же методом get(), который использует Joomla Registry.
  */
 final class ParameterBag
@@ -57,28 +46,6 @@ final class FakeInput
     {
         return (int) ($this->values[$name] ?? $default);
     }
-
-    /**
-     * Возвращает массив по схеме Joomla Input::getArray().
-     */
-    public function getArray(array $schema): array
-    {
-        $result = [];
-
-        foreach ($schema as $name => $definition) {
-            $default = is_array($definition) && array_key_exists(1, $definition) ? $definition[1] : null;
-            $type = is_array($definition) ? ($definition[0] ?? null) : $definition;
-            $value = $this->values[$name] ?? $default;
-
-            $result[$name] = match ($type) {
-                'int' => (int) $value,
-                'array' => (array) $value,
-                default => $value,
-            };
-        }
-
-        return $result;
-    }
 }
 
 /**
@@ -96,24 +63,6 @@ final class FakeIdentity
     public function getAuthorisedViewLevels(): array
     {
         return $this->levels;
-    }
-}
-
-/**
- * Language double фиксирует вызов load().
- */
-final class FakeLanguage
-{
-    public array $loadCalls = [];
-
-    /**
-     * Запоминает загрузку language-файла.
-     */
-    public function load(string $extension, string $basePath): bool
-    {
-        $this->loadCalls[] = [$extension, $basePath];
-
-        return true;
     }
 }
 
@@ -323,15 +272,13 @@ final class FakeApp
     public array $bootComponentCalls = [];
     public array $bootModuleCalls = [];
     public array $messages = [];
-    public array $jsonMessages = [];
 
     public function __construct(
         private FakeInput $input,
         private FakeDocument $document,
         private FakeComponent $component,
         private FakeModuleBoot $moduleBoot,
-        private FakeIdentity $identity = new FakeIdentity(),
-        private FakeLanguage $language = new FakeLanguage()
+        private FakeIdentity $identity = new FakeIdentity()
     ) {
     }
 
@@ -380,29 +327,11 @@ final class FakeApp
     }
 
     /**
-     * Возвращает language double.
-     */
-    public function getLanguage(): FakeLanguage
-    {
-        return $this->language;
-    }
-
-    /**
      * Фиксирует Joomla UI message.
      */
     public function enqueueMessage(string $message, string $type): void
     {
         $this->messages[] = [$message, $type];
-    }
-
-    /**
-     * Фиксирует JSON response и завершает тестовый request исключением.
-     */
-    public function sendJsonMessage(bool $success, mixed $data, bool $error = false): never
-    {
-        $this->jsonMessages[] = [$success, $data, $error];
-
-        throw new JsonResponseSent($success, $data, $error);
     }
 }
 
@@ -432,7 +361,6 @@ final class LayoutRenderer
         \Joomla\CMS\Helper\ModuleHelper::reset();
         \Joomla\CMS\HTML\HTMLHelper::reset();
         \Joomla\CMS\Language\Text::reset();
-        \Joomla\CMS\Session\Session::reset();
         \Joomla\CMS\Uri\Uri::reset();
 
         $webAssetManager = new FakeWebAssetManager();
@@ -484,7 +412,6 @@ final class FakeEnvironment
      */
     public static function install(array $inputValues = [], mixed $filter = null, array $state = []): array
     {
-        \Joomla\CMS\Session\Session::reset();
         \Ilange\Component\Ishop\Site\Service\FilterRules::reset();
         \Ilange\Component\Ishop\Site\Service\FilterAvailabilityService::reset();
 

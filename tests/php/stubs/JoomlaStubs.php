@@ -283,33 +283,6 @@ final class Text
     }
 }
 
-namespace Joomla\CMS\Session;
-
-final class Session
-{
-    public static bool $tokenValid = true;
-    public static array $calls = [];
-
-    /**
-     * Сбрасывает CSRF-состояние между тестами.
-     */
-    public static function reset(): void
-    {
-        self::$tokenValid = true;
-        self::$calls = [];
-    }
-
-    /**
-     * Возвращает управляемый результат CSRF-проверки.
-     */
-    public static function checkToken(string $method = 'request'): bool
-    {
-        self::$calls[] = $method;
-
-        return self::$tokenValid;
-    }
-}
-
 namespace Joomla\CMS\Uri;
 
 final class Uri

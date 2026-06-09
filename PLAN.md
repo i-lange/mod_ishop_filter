@@ -80,8 +80,8 @@
   - Выполнено: helper подключается через `IshopStubs.php` без настоящего `com_ishop`.
 
 - [x] Добавить support doubles для application, input, document, web asset manager, module boot, component boot, category model, params и layout rendering.
-  - Проверка: doubles позволяют задавать input values, возвращать fake helper/model и перехватывать `sendJsonMessage()`/`enqueueMessage()`.
-  - Выполнено: `FakeEnvironment` проверен через `php -r`, input/model цепочка и перехват `sendJsonMessage()` работают.
+  - Проверка: doubles позволяют задавать input values, возвращать fake helper/model и фиксировать `enqueueMessage()`.
+  - Выполнено: `FakeEnvironment` проверен через `php -r`, input/model цепочка и `enqueueMessage()` работают.
 
 ## 3. PHP unit tests
 
@@ -131,13 +131,10 @@
   - Проверка: `vendor/bin/phpunit --testsuite unit --filter HelperTest`.
   - Выполнено: `HelperTest` проверяет numeric поля, manufacturers/warehouses, mapping `active.fields` -> `ishop_fields` и defaults.
 
-- [x] Реализовать unit-тесты legacy `IshopfilterHelper::getAjax()`.
-  - Invalid CSRF возвращает ошибку `JINVALID_TOKEN`.
-  - Пустой `category_id` возвращает `MOD_ISHOP_FILTER_INVALID_CATEGORY`.
-  - Пустой filter object возвращает `MOD_ISHOP_FILTER_NO_DATA`.
-  - Валидный payload читает все expected keys.
-  - Вызывается `FilterRules::normalizeFilterInput()`.
-  - Успешный ответ содержит `success`, `productCount`, `availableOptions`.
+- [x] Удалить legacy `IshopfilterHelper::getAjax()` после перехода AJAX preview/reset на endpoints `com_ishop`.
+  - Удалены unit-тесты старого helper AJAX.
+  - Удалены тестовые doubles/stubs под `sendJsonMessage()` и helper-level CSRF.
+  - Удалены языковые ключи ошибок, которые использовались только старым endpoint.
   - Проверка: `vendor/bin/phpunit --testsuite unit --filter HelperTest`.
   - Выполнено: `HelperTest` проходит, 10 тестов и 49 assertions; весь текущий unit suite проходит, 20 тестов и 82 assertions.
 

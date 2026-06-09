@@ -7,10 +7,8 @@ namespace Tests\Php\Unit;
 use Ilange\Component\Ishop\Site\Service\FilterAvailabilityService;
 use Ilange\Component\Ishop\Site\Service\FilterRules;
 use Ilange\Module\Ishopfilter\Site\Helper\IshopfilterHelper;
-use Joomla\CMS\Session\Session;
 use PHPUnit\Framework\TestCase;
 use Tests\Php\Support\FakeEnvironment;
-use Tests\Php\Support\JsonResponseSent;
 
 /**
  * Проверяет helper модуля без настоящего Joomla application context и com_ishop.
@@ -142,112 +140,6 @@ final class HelperTest extends TestCase
     }
 
     /**
-     * getAjax() должен вернуть ошибку при невалидном CSRF token.
-     */
-    public function testGetAjaxRejectsInvalidCsrfToken(): void
-    {
-        FakeEnvironment::install(['category_id' => 10], $this->createFilter());
-        Session::$tokenValid = false;
-
-        $event = $this->captureJsonResponse(static fn () => IshopfilterHelper::getAjax());
-
-        self::assertFalse($event->success);
-        self::assertSame('JINVALID_TOKEN', $event->data);
-        self::assertTrue($event->error);
-        self::assertSame(['request'], Session::$calls);
-    }
-
-    /**
-     * getAjax() должен вернуть ошибку, если category_id не передан.
-     */
-    public function testGetAjaxRejectsMissingCategoryId(): void
-    {
-        FakeEnvironment::install([], $this->createFilter());
-
-        $event = $this->captureJsonResponse(static fn () => IshopfilterHelper::getAjax());
-
-        self::assertFalse($event->success);
-        self::assertSame('MOD_ISHOP_FILTER_INVALID_CATEGORY', $event->data);
-        self::assertTrue($event->error);
-    }
-
-    /**
-     * getAjax() должен вернуть ошибку, если com_ishop не дал filter data.
-     */
-    public function testGetAjaxRejectsEmptyFilterObject(): void
-    {
-        FakeEnvironment::install(['category_id' => 10], (object) ['empty' => true]);
-
-        $event = $this->captureJsonResponse(static fn () => IshopfilterHelper::getAjax());
-
-        self::assertFalse($event->success);
-        self::assertSame('MOD_ISHOP_FILTER_NO_DATA', $event->data);
-        self::assertTrue($event->error);
-    }
-
-    /**
-     * getAjax() должен прочитать payload, нормализовать его и вернуть count/options.
-     */
-    public function testGetAjaxReturnsProductCountAndAvailableOptions(): void
-    {
-        $input = [
-            'category_id' => 33,
-            'Itemid' => 55,
-            'min_price' => '10',
-            'max_price' => '100',
-            'min_width' => '1',
-            'max_width' => '2',
-            'min_height' => '3',
-            'max_height' => '4',
-            'min_depth' => '5',
-            'max_depth' => '6',
-            'min_weight' => '7',
-            'max_weight' => '8',
-            'good_price' => '1',
-            'manufacturers' => ['9'],
-            'warehouses' => ['10'],
-            'ishop_fields' => [12 => ['100']],
-        ];
-        FakeEnvironment::install($input, $this->createFilter());
-        FilterRules::$normalizedReturn = ['normalized' => true];
-        FilterAvailabilityService::$filteredProductIds = [1, 2, 3, 4];
-        FilterAvailabilityService::$availableOptions = ['ishop_fields' => [12 => ['type' => 'list']]];
-
-        $event = $this->captureJsonResponse(static fn () => IshopfilterHelper::getAjax());
-
-        self::assertTrue($event->success);
-        self::assertSame(
-            [
-                'success' => true,
-                'productCount' => 4,
-                'availableOptions' => ['ishop_fields' => [12 => ['type' => 'list']]],
-            ],
-            $event->data
-        );
-        self::assertSame(
-            [
-                'min_price' => 10,
-                'max_price' => 100,
-                'min_width' => 1,
-                'max_width' => 2,
-                'min_height' => 3,
-                'max_height' => 4,
-                'min_depth' => 5,
-                'max_depth' => 6,
-                'min_weight' => 7,
-                'max_weight' => 8,
-                'good_price' => 1,
-                'manufacturers' => ['9'],
-                'warehouses' => ['10'],
-                'ishop_fields' => [12 => ['100']],
-            ],
-            FilterRules::$normalizeCalls[0]
-        );
-        self::assertSame([[33, 55, ['normalized' => true]]], FilterAvailabilityService::$filteredProductCalls);
-        self::assertSame([[33, 55, ['normalized' => true]]], FilterAvailabilityService::$availableOptionsCalls);
-    }
-
-    /**
      * Создает минимальный рабочий объект фильтра.
      */
     private function createFilter(array $active = []): object
@@ -269,17 +161,4 @@ final class HelperTest extends TestCase
         return $method->invoke(null, $filter);
     }
 
-    /**
-     * Перехватывает fake JSON response, которым завершается helper AJAX request.
-     */
-    private function captureJsonResponse(callable $callback): JsonResponseSent
-    {
-        try {
-            $callback();
-        } catch (JsonResponseSent $event) {
-            return $event;
-        }
-
-        self::fail('Ожидался вызов sendJsonMessage().');
-    }
 }
