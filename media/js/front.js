@@ -17,8 +17,16 @@ export class IshopFilter {
 
     this.formId = formId;
     this.currentRequest = null;
+    this.currentRequestId = 0;
+    this.currentRequestResolve = null;
+    this.requestSequence = 0;
     this.debounceTimer = null;
     this.debounceDelay = 300;
+    this.loadingDelay = 180;
+    this.loadingMinVisible = 320;
+    this.loadingTimer = null;
+    this.loadingHideTimer = null;
+    this.loadingShownAt = 0;
     this.previewUrl = this.form.dataset.previewUrl || this.buildEndpoint("filter.preview");
     this.resetUrl = this.form.dataset.resetUrl || this.buildEndpoint("filter.reset");
     this.submitTemplate = this.form.dataset.submitTemplate || "";
@@ -247,10 +255,24 @@ export class IshopFilter {
     }
 
     data.set(csrfToken, "1");
-    this.abortCurrentRequest();
-    this.showLoading();
+    this.abortCurrentRequest({ keepLoading: true });
+    const requestId = this.startRequest();
 
     return new Promise((resolve) => {
+      let settled = false;
+      const settle = (value) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        if (this.isCurrentRequest(requestId)) {
+          this.currentRequestResolve = null;
+        }
+        resolve(value);
+      };
+
+      this.currentRequestResolve = settle;
       const request = Joomla.request({
         url: this.previewUrl,
         method: "POST",
@@ -260,6 +282,11 @@ export class IshopFilter {
         },
         data: this.encodeFormData(data),
         onSuccess: (response) => {
+          if (!this.isCurrentRequest(requestId)) {
+            settle(null);
+            return;
+          }
+
           const parsed = this.parseResponse(response);
           if (parsed && parsed.success && parsed.data) {
             this.updateUI(parsed.data);
@@ -268,7 +295,7 @@ export class IshopFilter {
               this.openFilterResult(parsed.data.sefUrl || this.sefUrl);
             }
 
-            resolve(parsed.data);
+            settle(parsed.data);
             return;
           }
 
@@ -276,35 +303,40 @@ export class IshopFilter {
           if (options.redirectOnSuccess) {
             this.redirectTo(this.sefUrl);
           }
-          resolve(null);
+          settle(null);
         },
         onError: (xhr) => {
+          if (!this.isCurrentRequest(requestId)) {
+            settle(null);
+            return;
+          }
+
           console.error("IshopFilter: AJAX request failed", xhr);
           if (options.redirectOnSuccess) {
             this.redirectTo(this.sefUrl);
           }
-          resolve(null);
+          settle(null);
         },
         onComplete: () => {
-          if (this.currentRequest === request) {
-            this.currentRequest = null;
-            this.hideLoading();
-          }
+          this.finishRequest(requestId);
         },
       });
 
-      this.currentRequest = request;
+      if (this.isCurrentRequest(requestId)) {
+        this.currentRequest = request;
+      }
     });
   }
 
   reset() {
     clearTimeout(this.debounceTimer);
-    this.abortCurrentRequest();
+    this.abortCurrentRequest({ keepLoading: true });
 
     const categoryId = this.getContextInteger("categoryId", "id");
     const csrfToken = this.getCsrfToken();
 
     if (!categoryId || !csrfToken) {
+      this.hideLoading();
       this.redirectTo(this.baseUrl || this.form.action);
       return;
     }
@@ -318,7 +350,7 @@ export class IshopFilter {
       data.set("Itemid", String(itemId));
     }
 
-    this.showLoading();
+    const requestId = this.startRequest();
 
     const request = Joomla.request({
       url: this.resetUrl,
@@ -329,6 +361,10 @@ export class IshopFilter {
       },
       data: this.encodeFormData(data),
       onSuccess: (response) => {
+        if (!this.isCurrentRequest(requestId)) {
+          return;
+        }
+
         const parsed = this.parseResponse(response);
         if (parsed && parsed.success && parsed.data && parsed.data.baseUrl) {
           this.redirectTo(parsed.data.baseUrl);
@@ -339,18 +375,21 @@ export class IshopFilter {
         this.redirectTo(this.baseUrl || this.form.action);
       },
       onError: (xhr) => {
+        if (!this.isCurrentRequest(requestId)) {
+          return;
+        }
+
         console.error("IshopFilter: Reset request failed", xhr);
         this.redirectTo(this.baseUrl || this.form.action);
       },
       onComplete: () => {
-        if (this.currentRequest === request) {
-          this.currentRequest = null;
-          this.hideLoading();
-        }
+        this.finishRequest(requestId);
       },
     });
 
-    this.currentRequest = request;
+    if (this.isCurrentRequest(requestId)) {
+      this.currentRequest = request;
+    }
   }
 
   updateUI(data) {
@@ -851,12 +890,53 @@ export class IshopFilter {
     }
   }
 
-  abortCurrentRequest() {
-    if (this.currentRequest && typeof this.currentRequest.abort === "function") {
-      this.currentRequest.abort();
+  startRequest() {
+    const requestId = ++this.requestSequence;
+    this.currentRequestId = requestId;
+    this.currentRequest = null;
+    this.currentRequestResolve = null;
+    this.scheduleLoading();
+
+    return requestId;
+  }
+
+  isCurrentRequest(requestId) {
+    return this.currentRequestId === requestId;
+  }
+
+  finishRequest(requestId) {
+    if (!this.isCurrentRequest(requestId)) {
+      return;
     }
 
     this.currentRequest = null;
+    this.currentRequestId = 0;
+    this.currentRequestResolve = null;
+    this.finishLoading();
+  }
+
+  abortCurrentRequest(options = {}) {
+    const request = this.currentRequest;
+    const resolveCurrentRequest = this.currentRequestResolve;
+
+    this.requestSequence += 1;
+    this.currentRequestId = 0;
+    this.currentRequest = null;
+    this.currentRequestResolve = null;
+
+    if (request && typeof request.abort === "function") {
+      request.abort();
+    }
+
+    if (resolveCurrentRequest) {
+      resolveCurrentRequest(null);
+    }
+
+    if (options.keepLoading) {
+      return;
+    }
+
+    this.finishLoading();
   }
 
   redirectTo(url) {
@@ -921,14 +1001,59 @@ export class IshopFilter {
     HTMLFormElement.prototype.submit.call(this.form);
   }
 
+  scheduleLoading() {
+    clearTimeout(this.loadingTimer);
+    clearTimeout(this.loadingHideTimer);
+    if (this.loadingShownAt) {
+      this.loadingTimer = null;
+      this.loadingHideTimer = null;
+      return;
+    }
+
+    this.loadingTimer = setTimeout(() => {
+      this.loadingTimer = null;
+      this.showLoading();
+    }, this.loadingDelay);
+  }
+
+  finishLoading() {
+    clearTimeout(this.loadingTimer);
+    this.loadingTimer = null;
+
+    if (!this.loadingShownAt) {
+      return;
+    }
+
+    const visibleFor = Date.now() - this.loadingShownAt;
+    const remaining = this.loadingMinVisible - visibleFor;
+
+    clearTimeout(this.loadingHideTimer);
+    if (remaining > 0) {
+      this.loadingHideTimer = setTimeout(() => {
+        this.loadingHideTimer = null;
+        this.hideLoading();
+      }, remaining);
+      return;
+    }
+
+    this.hideLoading();
+  }
+
   showLoading() {
     const overlay = this.form.querySelector(".filter-loading-overlay");
     if (overlay) {
       overlay.style.display = "flex";
+      this.loadingShownAt = Date.now();
     }
   }
 
   hideLoading() {
+    clearTimeout(this.loadingTimer);
+    clearTimeout(this.loadingHideTimer);
+    this.loadingTimer = null;
+    this.loadingHideTimer = null;
+    this.loadingShownAt = 0;
+
     const overlay = this.form.querySelector(".filter-loading-overlay");
     if (overlay) {
       overlay.style.display = "none";

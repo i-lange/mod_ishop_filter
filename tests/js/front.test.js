@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 const frontPath = '../../media/js/front.js'
 
@@ -94,7 +94,7 @@ function renderFilterForm(options = {}) {
 }
 
 // Создает управляемый Joomla API double без настоящей сети.
-function createJoomlaApi(requestHandler = () => {}) {
+function createJoomlaApi(requestHandler = () => {}, requestFactory = () => ({ abort: vi.fn() })) {
   return {
     getOptions: vi.fn((key, fallback) => {
       if (key === 'csrf.token') {
@@ -110,7 +110,7 @@ function createJoomlaApi(requestHandler = () => {}) {
     request: vi.fn((options) => {
       requestHandler(options)
 
-      return { abort: vi.fn() }
+      return requestFactory(options)
     }),
   }
 }
@@ -126,6 +126,10 @@ function formDataEntries(formData) {
 
   return entries
 }
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('front.js entrypoint', () => {
   beforeEach(() => {
@@ -309,7 +313,92 @@ describe('IshopFilter form behavior', () => {
     expect(document.querySelector('.count-value').textContent).toBe('5')
   })
 
-  test('sendAjax показывает и скрывает loading overlay после асинхронного complete', async () => {
+  test('sendAjax игнорирует success и redirect от устаревшего запроса', async () => {
+    renderFilterForm()
+    const requests = []
+    const aborts = []
+    const joomlaApi = createJoomlaApi(
+      (options) => {
+        requests.push(options)
+      },
+      () => {
+        const request = { abort: vi.fn() }
+        aborts.push(request.abort)
+        return request
+      },
+    )
+    vi.stubGlobal('Joomla', joomlaApi)
+    const { IshopFilter } = await importFront('ajax-stale-response')
+    const filter = new IshopFilter('filter-a')
+    filter.redirectTo = vi.fn()
+
+    const firstPromise = filter.sendAjax({ redirectOnSuccess: true })
+    const secondPromise = filter.sendAjax()
+
+    await expect(firstPromise).resolves.toBeNull()
+    expect(aborts[0]).toHaveBeenCalledTimes(1)
+
+    requests[0].onSuccess({
+      success: true,
+      data: { productCount: 1, sefUrl: '/stale', availableOptions: {} },
+    })
+    requests[0].onComplete()
+
+    expect(document.querySelector('.count-value').textContent).toBe('5')
+    expect(filter.redirectTo).not.toHaveBeenCalled()
+
+    requests[1].onSuccess({
+      success: true,
+      data: { productCount: 9, sefUrl: '/fresh', availableOptions: {} },
+    })
+    requests[1].onComplete()
+
+    await expect(secondPromise).resolves.toMatchObject({ productCount: 9 })
+    expect(document.querySelector('.count-value').textContent).toBe('9')
+    expect(filter.redirectTo).not.toHaveBeenCalled()
+  })
+
+  test('abortCurrentRequest инвалидирует запрос до вызова abort callback', async () => {
+    renderFilterForm()
+    const requests = []
+    const joomlaApi = createJoomlaApi(
+      (options) => {
+        requests.push(options)
+      },
+      () => ({
+        abort: vi.fn(() => {
+          requests[0].onSuccess({
+            success: true,
+            data: { productCount: 1, sefUrl: '/aborted', availableOptions: {} },
+          })
+          requests[0].onComplete()
+        }),
+      }),
+    )
+    vi.stubGlobal('Joomla', joomlaApi)
+    const { IshopFilter } = await importFront('ajax-abort-callback')
+    const filter = new IshopFilter('filter-a')
+    filter.redirectTo = vi.fn()
+
+    const firstPromise = filter.sendAjax({ redirectOnSuccess: true })
+    const secondPromise = filter.sendAjax()
+
+    await expect(firstPromise).resolves.toBeNull()
+    expect(document.querySelector('.count-value').textContent).toBe('5')
+    expect(filter.redirectTo).not.toHaveBeenCalled()
+
+    requests[1].onSuccess({
+      success: true,
+      data: { productCount: 8, sefUrl: '/fresh', availableOptions: {} },
+    })
+    requests[1].onComplete()
+
+    await expect(secondPromise).resolves.toMatchObject({ productCount: 8 })
+    expect(document.querySelector('.count-value').textContent).toBe('8')
+  })
+
+  test('sendAjax не показывает loading overlay, если быстрый ответ пришел до задержки', async () => {
+    vi.useFakeTimers()
     renderFilterForm()
     let requestOptions
     const joomlaApi = createJoomlaApi((options) => {
@@ -320,6 +409,63 @@ describe('IshopFilter form behavior', () => {
     const filter = new IshopFilter('filter-a')
     const promise = filter.sendAjax()
 
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+
+    requestOptions.onSuccess({ success: true, data: { productCount: 4, availableOptions: {} } })
+    requestOptions.onComplete()
+    await promise
+    await vi.advanceTimersByTimeAsync(filter.loadingDelay)
+
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+    expect(document.querySelector('.count-value').textContent).toBe('4')
+    vi.useRealTimers()
+  })
+
+  test('sendAjax показывает loading overlay после задержки и держит минимальное время', async () => {
+    vi.useFakeTimers()
+    renderFilterForm()
+    let requestOptions
+    const joomlaApi = createJoomlaApi((options) => {
+      requestOptions = options
+    })
+    vi.stubGlobal('Joomla', joomlaApi)
+    const { IshopFilter } = await importFront('ajax-loading-min-visible')
+    const filter = new IshopFilter('filter-a')
+    const promise = filter.sendAjax()
+
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+
+    await vi.advanceTimersByTimeAsync(filter.loadingDelay - 1)
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+
+    await vi.advanceTimersByTimeAsync(1)
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('flex')
+
+    requestOptions.onSuccess({ success: true, data: { productCount: 4, availableOptions: {} } })
+    requestOptions.onComplete()
+    await promise
+
+    await vi.advanceTimersByTimeAsync(filter.loadingMinVisible - 1)
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('flex')
+
+    await vi.advanceTimersByTimeAsync(1)
+    expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+    vi.useRealTimers()
+  })
+
+  test('sendAjax скрывает loading overlay сразу, если минимум видимости уже прошел', async () => {
+    vi.useFakeTimers()
+    renderFilterForm()
+    let requestOptions
+    const joomlaApi = createJoomlaApi((options) => {
+      requestOptions = options
+    })
+    vi.stubGlobal('Joomla', joomlaApi)
+    const { IshopFilter } = await importFront('ajax-loading-after-min-visible')
+    const filter = new IshopFilter('filter-a')
+    const promise = filter.sendAjax()
+
+    await vi.advanceTimersByTimeAsync(filter.loadingDelay + filter.loadingMinVisible)
     expect(document.querySelector('.filter-loading-overlay').style.display).toBe('flex')
 
     requestOptions.onSuccess({ success: true, data: { productCount: 4, availableOptions: {} } })
@@ -327,6 +473,7 @@ describe('IshopFilter form behavior', () => {
     await promise
 
     expect(document.querySelector('.filter-loading-overlay').style.display).toBe('none')
+    vi.useRealTimers()
   })
 
   test('sendAjax не отправляет запрос без category_id или CSRF token', async () => {
