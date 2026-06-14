@@ -390,7 +390,11 @@ final class LayoutRenderer
         ];
 
         $params = new ParameterBag(array_replace($defaults, $paramOverrides));
-        $module = (object) ['id' => $paramOverrides['module_id'] ?? 101, 'params' => $params];
+        $module = (object) [
+            'id' => $paramOverrides['module_id'] ?? 101,
+            'params' => $params,
+            'position' => $paramOverrides['module_position'] ?? 'sidebar-left',
+        ];
         $template = new \stdClass();
         $wa = $webAssetManager;
 

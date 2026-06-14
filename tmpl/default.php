@@ -49,6 +49,7 @@ $rootUrl = rtrim(Uri::root(true), '/');
 $endpointRoot = ($rootUrl === '' ? '' : $rootUrl) . '/index.php?option=com_ishop&task=filter.';
 $previewUrl = $endpointRoot . 'preview&format=json';
 $resetUrl = $endpointRoot . 'reset&format=json';
+$offcanvasSide = (($module->position ?? '') === 'sidebar-right') ? 'offcanvas-end' : 'offcanvas-start';
 $filterTitle = Text::_('MOD_ISHOP_FILTER_MODULE_FILTERS');
 $closeText = Text::_('MOD_ISHOP_FILTER_CLOSE');
 $backText = Text::_('MOD_ISHOP_FILTER_BACK');
@@ -84,7 +85,7 @@ $getFieldAvailableValues = static function (array $availableOptions, int $fieldI
 // Массив дочерних панелей
 $subPanels = [];
 ?>
-<div class="mod_ishop_filter offcanvas-lg offcanvas-start"
+<div class="mod_ishop_filter offcanvas-lg <?php echo $offcanvasSide; ?>"
      tabindex="-1"
      id="moduleFilter"
      aria-labelledby="moduleFilterLabel"

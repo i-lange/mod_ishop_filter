@@ -5,10 +5,6 @@
  * @copyright  (C) 2026 Pavel Lange <https://ilange.ru>
  * @license    GNU General Public License version 2 or later
  */
-.mod_ishop_filter {
-  position: relative;
-}
-
 .mod_ishop_filter.offcanvas-lg {
   --bs-offcanvas-width: min(22rem, 92vw);
   --offcanvas-width: min(22rem, 92vw);
@@ -16,6 +12,10 @@
 
 .mod_ishop_filter.offcanvas-lg.offcanvas-start {
   border-right: var(--bs-offcanvas-border-width, var(--offcanvas-border-width, 1px)) solid var(--bs-offcanvas-border-color, var(--offcanvas-border-color, rgba(0, 0, 0, 0.175)));
+}
+
+.mod_ishop_filter.offcanvas-lg.offcanvas-end {
+  border-left: var(--bs-offcanvas-border-width, var(--offcanvas-border-width, 1px)) solid var(--bs-offcanvas-border-color, var(--offcanvas-border-color, rgba(0, 0, 0, 0.175)));
 }
 
 .filter-loading-overlay {
