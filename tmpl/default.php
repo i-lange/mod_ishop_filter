@@ -84,7 +84,7 @@ $getFieldAvailableValues = static function (array $availableOptions, int $fieldI
 // Массив дочерних панелей
 $subPanels = [];
 ?>
-<div class="offcanvas offcanvas-end"
+<div class="mod_ishop_filter offcanvas-lg offcanvas-start"
      tabindex="-1"
      id="moduleFilter"
      aria-labelledby="moduleFilterLabel"
@@ -98,8 +98,9 @@ $subPanels = [];
                     id="ishop-filter-reset-<?php echo (int) $module->id; ?>"
                     data-filter-reset><?php echo Text::_('MOD_ISHOP_FILTER_MODULE_RESET_ALL'); ?></button>
             <button type="button"
-                    class="btn-close filter-header-close"
+                    class="btn-close filter-header-close d-lg-none"
                     data-bs-dismiss="offcanvas"
+                    data-bs-target="#moduleFilter"
                     aria-label="<?php echo $closeText; ?>"></button>
         </div>
         <div class="filter-active-tags"

@@ -10,6 +10,16 @@
   position: relative;
 }
 
+.mod_ishop_filter.offcanvas-lg {
+  --bs-offcanvas-width: min(22rem, 92vw);
+  --offcanvas-width: min(22rem, 92vw);
+}
+
+.mod_ishop_filter.offcanvas-lg.offcanvas-start {
+  border-right: var(--bs-offcanvas-border-width, var(--offcanvas-border-width, 1px)) solid
+    var(--bs-offcanvas-border-color, var(--offcanvas-border-color, rgba(0, 0, 0, 0.175)));
+}
+
 .filter-loading-overlay {
   position: absolute;
   inset: 0;
@@ -196,4 +206,49 @@ label.disabled {
   color: var(--secondary, #6c757d);
   text-decoration: line-through;
   opacity: 0.6;
+}
+
+@media (min-width: 960px) {
+  .mod_ishop_filter.offcanvas-lg {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: none;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 0.375rem;
+    background: var(--body-bg, #ffffff) !important;
+  }
+
+  .mod_ishop_filter.offcanvas-lg .offcanvas-header {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 1rem;
+  }
+
+  .mod_ishop_filter.offcanvas-lg .offcanvas-body {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--body-bg, #ffffff) !important;
+  }
+
+  .mod_ishop_filter.offcanvas-lg .offcanvas-footer {
+    flex: 0 0 auto;
+    padding: 1rem;
+    background: var(--body-bg, #ffffff);
+  }
+
+  .mod_ishop_filter.offcanvas-lg [data-menu-viewport] {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .mod_ishop_filter.offcanvas-lg [data-menu-viewport] [data-panel].is-active {
+    position: relative;
+    inset: auto;
+    overflow: visible;
+  }
 }

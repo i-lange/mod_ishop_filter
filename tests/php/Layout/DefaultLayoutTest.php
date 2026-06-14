@@ -49,6 +49,21 @@ final class DefaultLayoutTest extends TestCase
     }
 
     /**
+     * Корневой wrapper должен быть responsive offcanvas слева, чтобы на lg+ работать как sidebar.
+     */
+    public function testRootWrapperUsesResponsiveStartOffcanvas(): void
+    {
+        $html = (new LayoutRenderer())->render([], $this->createFilter())->html;
+
+        self::assertStringContainsString('class="mod_ishop_filter offcanvas-lg offcanvas-start"', $html);
+        self::assertStringContainsString('id="moduleFilter"', $html);
+        self::assertStringContainsString('data-offcanvas-panels', $html);
+        self::assertStringContainsString('class="btn-close filter-header-close d-lg-none"', $html);
+        self::assertStringContainsString('data-bs-target="#moduleFilter"', $html);
+        self::assertStringNotContainsString('offcanvas-end', $html);
+    }
+
+    /**
      * Основная форма должна сохранять data-контракт JS-фильтра и CSRF token.
      */
     public function testFormContractAttributesAreRendered(): void
