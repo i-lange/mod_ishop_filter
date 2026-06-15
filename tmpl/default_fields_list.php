@@ -47,7 +47,7 @@ defined('_JEXEC') or die;
     <span class="nav-link separator"
           data-panel-target="off-panel-<?php echo htmlspecialchars($subPanels[$field->id]['alias'], ENT_COMPAT, 'UTF-8'); ?>">
         <span class="filter-panel-title"><?php echo htmlspecialchars((string) $field->title, ENT_COMPAT, 'UTF-8'); ?></span>
-        <span class="filter-selected-count<?php echo $selectedCount > 0 ? '' : ' is-empty'; ?>"
+        <span class="badge rounded-pill text-bg-primary filter-selected-count<?php echo $selectedCount > 0 ? '' : ' is-empty'; ?>"
               data-field-id="<?php echo (int) $field->id; ?>"
               data-selected-count
               data-count="<?php echo $selectedCount; ?>"
