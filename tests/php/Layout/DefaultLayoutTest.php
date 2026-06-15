@@ -49,31 +49,33 @@ final class DefaultLayoutTest extends TestCase
     }
 
     /**
-     * Корневой wrapper должен быть responsive offcanvas слева по умолчанию.
+     * Корневой wrapper должен быть responsive offcanvas справа.
      */
-    public function testRootWrapperUsesResponsiveStartOffcanvas(): void
+    public function testRootWrapperUsesResponsiveEndOffcanvas(): void
     {
         $html = (new LayoutRenderer())->render([], $this->createFilter())->html;
 
-        self::assertStringContainsString('class="mod_ishop_filter offcanvas-lg offcanvas-start"', $html);
+        self::assertStringContainsString('class="mod_ishop_filter offcanvas-lg offcanvas-end"', $html);
         self::assertStringContainsString('id="moduleFilter"', $html);
         self::assertStringContainsString('data-offcanvas-panels', $html);
         self::assertStringContainsString('class="btn-close filter-header-close d-lg-none"', $html);
         self::assertStringContainsString('data-bs-target="#moduleFilter"', $html);
-        self::assertStringNotContainsString('offcanvas-end', $html);
+        self::assertStringNotContainsString('offcanvas-start', $html);
     }
 
     /**
-     * Публикация в правую sidebar-позицию должна менять сторону mobile offcanvas.
+     * Позиция модуля не должна менять сторону mobile offcanvas.
      */
-    public function testRootWrapperUsesResponsiveEndOffcanvasForRightSidebar(): void
+    public function testRootWrapperUsesResponsiveEndOffcanvasForAnyModulePosition(): void
     {
-        $html = (new LayoutRenderer())->render(['module_position' => 'sidebar-right'], $this->createFilter())->html;
+        foreach (['sidebar-left', 'sidebar-right', 'top'] as $position) {
+            $html = (new LayoutRenderer())->render(['module_position' => $position], $this->createFilter())->html;
 
-        self::assertStringContainsString('class="mod_ishop_filter offcanvas-lg offcanvas-end"', $html);
-        self::assertStringContainsString('id="moduleFilter"', $html);
-        self::assertStringContainsString('data-bs-target="#moduleFilter"', $html);
-        self::assertStringNotContainsString('offcanvas-start', $html);
+            self::assertStringContainsString('class="mod_ishop_filter offcanvas-lg offcanvas-end"', $html);
+            self::assertStringContainsString('id="moduleFilter"', $html);
+            self::assertStringContainsString('data-bs-target="#moduleFilter"', $html);
+            self::assertStringNotContainsString('offcanvas-start', $html);
+        }
     }
 
     /**
