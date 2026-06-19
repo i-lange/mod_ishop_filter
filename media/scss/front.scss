@@ -57,20 +57,9 @@
 }
 
 .filter-reset-all {
+  --btn-color: var(--gray-800);
+  padding-right: 0;
   flex: 0 0 auto;
-  padding: 0;
-  border: 0;
-  color: var(--secondary);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  text-decoration: underline;
-  white-space: nowrap;
-
-  &:hover,
-  &:focus {
-    color: var(--primary);
-    text-decoration: underline;
-  }
 }
 
 .filter-header-close {
