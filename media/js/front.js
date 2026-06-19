@@ -580,9 +580,9 @@ export class IshopFilter {
       label.textContent = tag.label;
 
       const icon = document.createElement("span");
-      icon.className = "filter-active-tag__remove";
+      icon.className = "filter-active-tag__remove btn-close";
       icon.setAttribute("aria-hidden", "true");
-      icon.textContent = "\u00d7";
+      icon.textContent = "";
 
       button.append(label, icon);
       this.activeTagsContainer.append(button);

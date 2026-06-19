@@ -8,7 +8,7 @@
 
 .range {
   display: block;
-  margin: 0 0 0.5em;
+  margin: 0 0 0.5rem;
 }
 
 .range-inputs {
@@ -20,11 +20,11 @@
   &::after {
     position: absolute;
     content: "";
-    left: 1em;
-    right: 1em;
+    left: 1rem;
+    right: 1rem;
     bottom: 0;
-    height: 0.25em;
-    border-radius: 0.25em;
+    height: 0.25rem;
+    border-radius: 0.25rem;
     background: var(--gray-300, #dee2e6);
   }
 
@@ -57,20 +57,20 @@
   position: absolute;
   display: inline-block;
   text-transform: lowercase;
-  font-size: 0.75em;
+  font-size: 0.75rem;
   line-height: 1;
   font-weight: 600;
   top: 1px;
   left: 1px;
   color: var(--gray-300, #dee2e6);
   background: transparent;
-  padding: 0 0.25em;
+  padding: 0 0.25rem;
 }
 
 .range-slider {
   position: relative;
-  height: 0.25em;
-  margin: -0.25em 0.75em 0 -0.25em;
+  height: 0.25rem;
+  margin: -0.25rem 1rem 0 0.25rem;
   background-color: transparent;
 }
 
@@ -85,8 +85,8 @@
   cursor: pointer;
   top: 50%;
   transform: translateY(-50%);
-  width: 1em;
-  height: 1em;
+  width: .75rem;
+  height: .75rem;
   background-color: var(--primary, #0d6efd);
   border-radius: 50%;
 }
