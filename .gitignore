@@ -2,6 +2,7 @@
 /.github
 /.idea
 /docs
+/build/
 /node_modules
 /.phpunit.cache
 /coverage
@@ -9,4 +10,5 @@
 opencode.json
 pnpm-lock.yaml
 pnpm-workspace.yaml
-/build/qa/
+/AGENTS.md
+/CLAUDE.md

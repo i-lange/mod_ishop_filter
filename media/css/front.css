@@ -55,7 +55,6 @@
 
 .filter-reset-all {
   --btn-color: var(--gray-800);
-  font-weight: 300;
   padding-right: 0;
   flex: 0 0 auto;
 }
